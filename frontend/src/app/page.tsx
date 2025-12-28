@@ -62,7 +62,7 @@ interface AnalysisResult {
     errors?: string[];
 }
 
-const API_BASE = 'http://localhost:8003';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://creative-intelligence-platform.onrender.com';
 
 export default function Home() {
     const [user, setUser] = useState<User | null>(null);
