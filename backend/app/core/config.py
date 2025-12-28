@@ -17,8 +17,8 @@ class Settings(BaseSettings):
     # API
     API_V1_PREFIX: str = "/api/v1"
     
-    # Database
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/creative_intel"
+    # Database - defaults to SQLite for simple deployments
+    DATABASE_URL: str = "sqlite+aiosqlite:///./creative_intel.db"
     
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
