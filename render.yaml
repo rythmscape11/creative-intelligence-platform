@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: creative-intelligence-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        value: sqlite:///./creative.db
+    autoDeploy: true
+    plan: free
+    region: oregon
+    rootDir: backend
