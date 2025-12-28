@@ -4,10 +4,11 @@ Analysis API Router - Direct analysis endpoints for creatives.
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from typing import Optional
+from typing import Optional, Any
 import uuid
 import os
 import tempfile
+import numpy as np
 
 from app.core.database import get_db
 from app.core.auth import get_current_user
@@ -16,6 +17,23 @@ from app.models.models import User
 from app.services.orchestrator import AnalysisOrchestrator
 
 router = APIRouter(prefix="/analysis", tags=["Analysis"])
+
+
+def convert_numpy_types(obj: Any) -> Any:
+    """Recursively convert numpy types to native Python types for JSON serialization."""
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, (np.float32, np.float64, np.floating)):
+        return float(obj)
+    elif isinstance(obj, (np.int32, np.int64, np.integer)):
+        return int(obj)
+    elif isinstance(obj, np.bool_):
+        return bool(obj)
+    elif isinstance(obj, dict):
+        return {k: convert_numpy_types(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [convert_numpy_types(item) for item in obj]
+    return obj
 
 
 @router.post("/")
@@ -62,6 +80,9 @@ async def analyze_image(
             funnel_stage=funnel_stage,
             user_token_budget=remaining_budget
         )
+        
+        # Convert numpy types to native Python types for JSON serialization
+        result = convert_numpy_types(result)
         
         # Update user's token usage
         current_user.tokens_used += result.get("total_tokens_used", 0)
