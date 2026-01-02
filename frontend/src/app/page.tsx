@@ -74,6 +74,11 @@ export default function Home() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [orgName, setOrgName] = useState('');
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     // Auth handlers
     const handleAuth = async (e: React.FormEvent) => {
@@ -109,6 +114,8 @@ export default function Home() {
             setError(err.message);
         }
     };
+
+
 
     // File upload handler
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -147,6 +154,9 @@ export default function Home() {
         accept: { 'image/*': ['.png', '.jpg', '.jpeg', '.webp'] },
         maxFiles: 1,
     });
+
+
+    if (!isMounted) return null;
 
     // If not logged in, show auth form
     if (!user) {

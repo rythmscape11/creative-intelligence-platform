@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable @next/next/no-img-element */
 
 import { useCallback, useState } from 'react'
 import { Upload, Image, Loader2 } from 'lucide-react'
