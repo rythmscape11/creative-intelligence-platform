@@ -1,0 +1,74 @@
+import { Metadata } from 'next';
+import { auth } from '@clerk/nextjs/server';
+import { redirect } from 'next/navigation';
+import { prisma } from '@/lib/prisma';
+import { FeatureFlagSettings } from '@/components/admin/feature-flag-settings';
+import { TrackingSettings } from '@/components/admin/tracking-settings';
+import { BrandingSettings } from '@/components/admin/branding-settings';
+import { PricingManager } from '@/components/admin/PricingManager';
+
+export const metadata: Metadata = {
+  title: 'Settings | Admin',
+  description: 'Configure tracking, analytics, and branding',
+};
+
+export default async function AdminSettingsPage() {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect('/auth/signin');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+
+  if (!user || user.role !== 'ADMIN') {
+    redirect('/dashboard');
+  }
+
+  // Fetch current site settings
+  const settings = await prisma.siteSettings.findMany({
+    where: {
+      category: 'BRANDING',
+    },
+  });
+
+  // Convert to object
+  type SettingValue = string | number | boolean | null | Record<string, unknown>;
+  const settingsObject: Record<string, SettingValue> = {};
+  settings.forEach((setting) => {
+    try {
+      const parsed = JSON.parse(setting.value) as SettingValue;
+      settingsObject[setting.key] = parsed;
+    } catch {
+      settingsObject[setting.key] = setting.value;
+    }
+  });
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-4xl font-bold mb-2 text-text-primary">
+          Settings
+        </h1>
+        <p className="text-text-secondary">
+          Configure branding, tracking, analytics, and integrations
+        </p>
+      </div>
+
+      {/* Feature Flags */}
+      <FeatureFlagSettings />
+
+      {/* Branding Settings */}
+      <BrandingSettings initialSettings={settingsObject} />
+
+      {/* Tracking Settings */}
+      <TrackingSettings />
+
+      {/* Pricing Settings */}
+      <PricingManager />
+    </div>
+  );
+}

@@ -1,0 +1,5 @@
+src/app/services/[slug]/page-old-backup.tsx
+src/app/tools/**
+src/app/growth-suite/repurposer/page.tsx
+src/app/growth-suite/widgets/page.tsx
+src/app/services/thank-you/page.tsx

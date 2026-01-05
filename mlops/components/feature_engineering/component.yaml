@@ -1,0 +1,14 @@
+name: Feature Engineering
+description: Normalizes numerical features in the dataset.
+inputs:
+- {name: input_data, type: String, description: 'Path to input data'}
+outputs:
+- {name: output_data, type: String, description: 'Path to output data'}
+implementation:
+  container:
+    image: us-central1-docker.pkg.dev/PROJECT_ID/mlops-components/feature-engineering:latest
+    command: [
+      python, feature_engineering.py,
+      --input_data, {inputValue: input_data},
+      --output_data, {outputPath: output_data},
+    ]

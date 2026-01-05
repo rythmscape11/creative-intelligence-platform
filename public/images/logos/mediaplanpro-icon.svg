@@ -1,0 +1,51 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Premium Gradient for Background -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FBBF24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FCD34D;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Subtle Inner Shadow Effect -->
+    <filter id="innerShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1"/>
+      <feOffset dx="0" dy="1" result="offsetblur"/>
+      <feFlood flood-color="#000000" flood-opacity="0.1"/>
+      <feComposite in2="offsetblur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Text Gradient -->
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F3F4F6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Circle with Premium Gradient -->
+  <rect x="0" y="0" width="48" height="48" rx="12" fill="url(#bgGradient)" filter="url(#innerShadow)"/>
+
+  <!-- Subtle Border for Depth -->
+  <rect x="0" y="0" width="48" height="48" rx="12" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+
+  <!-- Modern MP Monogram -->
+  <g transform="translate(24, 24)">
+    <!-- M Letter - Bold, Modern Design -->
+    <path d="M -14 -10 L -14 10 L -10 10 L -10 -2 L -6 6 L -2 6 L 2 -2 L 2 10 L 6 10 L 6 -10 L 0 -10 L -4 2 L -8 -10 Z"
+          fill="url(#textGradient)"
+          stroke="none"/>
+
+    <!-- P Letter - Bold, Modern Design -->
+    <path d="M 8 -10 L 8 10 L 12 10 L 12 2 L 16 2 C 18 2 20 0 20 -3 L 20 -7 C 20 -10 18 -10 16 -10 Z M 12 -6 L 16 -6 C 16.5 -6 16 -5 16 -4 L 16 -3 C 16 -2 16.5 -2 16 -2 L 12 -2 Z"
+          fill="url(#textGradient)"
+          stroke="none"/>
+  </g>
+
+  <!-- Highlight Effect (Top-left) -->
+  <ellipse cx="14" cy="14" rx="8" ry="6" fill="rgba(255,255,255,0.15)" opacity="0.6"/>
+</svg>
+

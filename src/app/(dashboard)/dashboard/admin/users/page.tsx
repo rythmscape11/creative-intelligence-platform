@@ -1,0 +1,86 @@
+import { Metadata } from 'next';
+import { auth } from '@clerk/nextjs/server';
+import { redirect } from 'next/navigation';
+import { prisma } from '@/lib/prisma';
+import { UserManagement } from '@/components/admin/user-management';
+
+export const metadata: Metadata = {
+  title: 'User Management | Admin',
+  description: 'Manage users, roles, and permissions',
+};
+
+export default async function AdminUsersPage() {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect('/auth/signin');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+
+  if (!user || user.role !== 'ADMIN') {
+    redirect('/dashboard');
+  }
+
+  const stats = {
+    total: await prisma.user.count(),
+    admins: await prisma.user.count({ where: { role: 'ADMIN' } }),
+    editors: await prisma.user.count({ where: { role: 'EDITOR' } }),
+    users: await prisma.user.count({ where: { role: 'USER' } }),
+  };
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-4xl font-bold mb-2 text-text-primary">
+          User Management
+        </h1>
+        <p className="text-text-secondary">
+          Manage users, roles, and permissions
+        </p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-bg-tertiary border border-border-primary rounded-lg p-6 animate-fade-in-up hover:border-border-hover transition-all">
+          <p className="text-sm font-medium mb-1 text-text-secondary">
+            Total Users
+          </p>
+          <p className="text-3xl font-bold text-text-primary">
+            {stats.total}
+          </p>
+        </div>
+        <div className="bg-bg-tertiary border border-border-primary rounded-lg p-6 animate-fade-in-up stagger-1 hover:border-border-hover transition-all">
+          <p className="text-sm font-medium mb-1 text-text-secondary">
+            Admins
+          </p>
+          <p className="text-3xl font-bold text-text-primary">
+            {stats.admins}
+          </p>
+        </div>
+        <div className="bg-bg-tertiary border border-border-primary rounded-lg p-6 animate-fade-in-up stagger-2 hover:border-border-hover transition-all">
+          <p className="text-sm font-medium mb-1 text-text-secondary">
+            Editors
+          </p>
+          <p className="text-3xl font-bold text-text-primary">
+            {stats.editors}
+          </p>
+        </div>
+        <div className="bg-bg-tertiary border border-border-primary rounded-lg p-6 animate-fade-in-up stagger-3 hover:border-border-hover transition-all">
+          <p className="text-sm font-medium mb-1 text-text-secondary">
+            Users
+          </p>
+          <p className="text-3xl font-bold text-text-primary">
+            {stats.users}
+          </p>
+        </div>
+      </div>
+
+      {/* User Management */}
+      <UserManagement />
+    </div>
+  );
+}

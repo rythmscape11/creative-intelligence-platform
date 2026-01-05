@@ -1,0 +1,295 @@
+/* Agency OS Design System
+ * A premium agency workspace aesthetic with teal/emerald accents
+ */
+
+:root {
+    /* Agency OS Color Palette */
+    --agency-primary: #0D9488;
+    /* Teal */
+    --agency-primary-light: #14B8A6;
+    --agency-primary-dark: #0F766E;
+    --agency-accent: #10B981;
+    /* Emerald */
+    --agency-accent-light: #34D399;
+
+    /* Surface Colors */
+    --agency-bg-primary: #0F172A;
+    /* Slate 900 */
+    --agency-bg-secondary: #1E293B;
+    /* Slate 800 */
+    --agency-bg-tertiary: #334155;
+    /* Slate 700 */
+    --agency-bg-elevated: #1E293B;
+
+    /* Border Colors */
+    --agency-border: #334155;
+    --agency-border-subtle: rgba(51, 65, 85, 0.5);
+
+    /* Text Colors */
+    --agency-text-primary: #F8FAFC;
+    --agency-text-secondary: #94A3B8;
+    --agency-text-muted: #64748B;
+
+    /* Status Colors */
+    --agency-success: #10B981;
+    --agency-warning: #F59E0B;
+    --agency-error: #EF4444;
+    --agency-info: #3B82F6;
+
+    /* Glassmorphism */
+    --agency-glass-bg: rgba(30, 41, 59, 0.8);
+    --agency-glass-border: rgba(148, 163, 184, 0.1);
+    --agency-glass-blur: 12px;
+}
+
+/* Agency Layout Container */
+.agency-layout {
+    background: var(--agency-bg-primary);
+    min-height: 100vh;
+}
+
+/* Agency Sidebar */
+.agency-sidebar {
+    background: var(--agency-bg-secondary);
+    border-right: 1px solid var(--agency-border);
+}
+
+.agency-sidebar-header {
+    border-bottom: 1px solid var(--agency-border);
+}
+
+.agency-sidebar-logo {
+    background: linear-gradient(135deg, var(--agency-primary) 0%, var(--agency-accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Navigation Groups */
+.agency-nav-group {
+    margin-bottom: 1rem;
+}
+
+.agency-nav-group-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--agency-text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.agency-nav-group-header:hover {
+    color: var(--agency-text-secondary);
+}
+
+.agency-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--agency-text-secondary);
+    transition: all 0.2s;
+}
+
+.agency-nav-item:hover {
+    background: var(--agency-bg-tertiary);
+    color: var(--agency-text-primary);
+}
+
+.agency-nav-item.active {
+    background: linear-gradient(135deg, var(--agency-primary) 0%, var(--agency-primary-dark) 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
+}
+
+.agency-nav-item.active .agency-nav-icon {
+    color: white;
+}
+
+/* Glassmorphism Card */
+.agency-glass-card {
+    background: var(--agency-glass-bg);
+    backdrop-filter: blur(var(--agency-glass-blur));
+    -webkit-backdrop-filter: blur(var(--agency-glass-blur));
+    border: 1px solid var(--agency-glass-border);
+    border-radius: 0.75rem;
+}
+
+/* Agency Header */
+.agency-header {
+    background: var(--agency-bg-secondary);
+    border-bottom: 1px solid var(--agency-border);
+    backdrop-filter: blur(8px);
+}
+
+/* Command Palette Trigger */
+.agency-cmd-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--agency-bg-tertiary);
+    border: 1px solid var(--agency-border);
+    border-radius: 0.5rem;
+    color: var(--agency-text-secondary);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.agency-cmd-trigger:hover {
+    background: var(--agency-bg-primary);
+    border-color: var(--agency-primary);
+}
+
+.agency-cmd-trigger kbd {
+    padding: 0.125rem 0.375rem;
+    background: var(--agency-bg-primary);
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-family: inherit;
+}
+
+/* KPI Cards */
+.agency-kpi-card {
+    background: var(--agency-bg-secondary);
+    border: 1px solid var(--agency-border);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    transition: all 0.2s;
+}
+
+.agency-kpi-card:hover {
+    border-color: var(--agency-primary);
+    box-shadow: 0 0 0 1px var(--agency-primary), 0 4px 12px rgba(13, 148, 136, 0.1);
+}
+
+.agency-kpi-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--agency-text-primary);
+    line-height: 1.2;
+}
+
+.agency-kpi-label {
+    font-size: 0.875rem;
+    color: var(--agency-text-secondary);
+}
+
+.agency-kpi-trend {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.agency-kpi-trend.positive {
+    color: var(--agency-success);
+}
+
+.agency-kpi-trend.negative {
+    color: var(--agency-error);
+}
+
+/* Animations */
+@keyframes agency-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes agency-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.agency-animate-fade-in {
+    animation: agency-fade-in 0.3s ease-out;
+}
+
+.agency-animate-slide-in {
+    animation: agency-slide-in 0.2s ease-out;
+}
+
+/* Agency Button Variants */
+.agency-btn-primary {
+    background: linear-gradient(135deg, var(--agency-primary) 0%, var(--agency-primary-dark) 100%);
+    color: white;
+    border: none;
+    padding: 0.625rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.agency-btn-primary:hover {
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.4);
+    transform: translateY(-1px);
+}
+
+.agency-btn-secondary {
+    background: var(--agency-bg-tertiary);
+    color: var(--agency-text-primary);
+    border: 1px solid var(--agency-border);
+    padding: 0.625rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.agency-btn-secondary:hover {
+    background: var(--agency-bg-primary);
+    border-color: var(--agency-primary);
+}
+
+/* Status Badges */
+.agency-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.agency-badge-success {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--agency-success);
+}
+
+.agency-badge-warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--agency-warning);
+}
+
+.agency-badge-error {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--agency-error);
+}
+
+.agency-badge-info {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--agency-info);
+}

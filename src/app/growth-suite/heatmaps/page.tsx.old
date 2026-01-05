@@ -1,0 +1,284 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { Eye, MousePointer, ArrowDown, Play, Download, Settings } from 'lucide-react';
+
+const mockPages = [
+  {
+    id: '1',
+    url: '/pricing',
+    sessions: 847,
+    clicks: 3421,
+    scrollDepth: 68,
+    lastRecorded: '2025-10-09',
+  },
+  {
+    id: '2',
+    url: '/features',
+    sessions: 623,
+    clicks: 2145,
+    scrollDepth: 72,
+    lastRecorded: '2025-10-08',
+  },
+];
+
+const heatmapTypes = [
+  { id: 'click', name: 'Click Heatmap', icon: MousePointer, color: '#F59E0B' },
+  { id: 'scroll', name: 'Scroll Depth', icon: ArrowDown, color: '#F59E0B' },
+  { id: 'move', name: 'Mouse Movement', icon: Eye, color: '#F59E0B' },
+];
+
+export default function HeatmapsPage() {
+  const [selectedPage, setSelectedPage] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState('click');
+
+  return (
+    <div className="min-h-screen bg-bg-primary py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8 bg-bg-secondary border border-border-primary rounded-lg p-8 animate-fade-in-up">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center mr-4 bg-[#F59E0B]">
+                  <Eye className="h-6 w-6 text-black" />
+                </div>
+                <h1 className="text-4xl font-bold text-text-primary">
+                  Heatmaps & Session Recordings
+                </h1>
+              </div>
+              <p className="text-lg text-text-secondary">
+                Visualize user behavior and watch session replays
+              </p>
+            </div>
+            <button className="px-4 py-2 rounded-lg bg-bg-tertiary border border-border-primary text-text-primary hover:bg-bg-hover transition-colors flex items-center">
+              <Settings className="h-5 w-5 mr-2" />
+              Configure Tracking
+            </button>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-bg-secondary border border-border-primary rounded-lg p-6 stagger-1">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-text-secondary">
+                Total Sessions
+              </span>
+              <Play className="h-5 w-5 text-[#F59E0B]" />
+            </div>
+            <div className="text-3xl font-bold text-text-primary">
+              {mockPages.reduce((sum, p) => sum + p.sessions, 0).toLocaleString()}
+            </div>
+          </div>
+
+          <div className="bg-bg-secondary border border-border-primary rounded-lg p-6 stagger-2">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-text-secondary">
+                Total Clicks
+              </span>
+              <MousePointer className="h-5 w-5 text-[#F59E0B]" />
+            </div>
+            <div className="text-3xl font-bold text-text-primary">
+              {mockPages.reduce((sum, p) => sum + p.clicks, 0).toLocaleString()}
+            </div>
+          </div>
+
+          <div className="bg-bg-secondary border border-border-primary rounded-lg p-6 stagger-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-text-secondary">
+                Avg Scroll Depth
+              </span>
+              <ArrowDown className="h-5 w-5 text-[#F59E0B]" />
+            </div>
+            <div className="text-3xl font-bold text-text-primary">
+              {Math.round(mockPages.reduce((sum, p) => sum + p.scrollDepth, 0) / mockPages.length)}%
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Pages List */}
+          <div className="lg:col-span-1">
+            <div className="bg-bg-secondary border border-border-primary rounded-lg p-6">
+              <h2 className="text-xl font-semibold mb-4 text-text-primary">
+                Tracked Pages
+              </h2>
+
+              <div className="space-y-3">
+                {mockPages.map((page) => (
+                  <button
+                    key={page.id}
+                    onClick={() => setSelectedPage(page.id)}
+                    className={`w-full text-left p-4 rounded-lg transition-all ${
+                      selectedPage === page.id
+                        ? 'bg-[#F59E0B]/10 border-2 border-[#F59E0B]'
+                        : 'bg-bg-tertiary border border-border-primary hover:bg-bg-hover'
+                    }`}
+                  >
+                    <div className="font-medium mb-2 text-text-primary">
+                      {page.url}
+                    </div>
+                    <div className="flex justify-between text-xs text-text-secondary">
+                      <span>{page.sessions} sessions</span>
+                      <span>{page.clicks} clicks</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Usage indicator */}
+              <div className="mt-6 p-4 bg-bg-tertiary rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium"
+>
+                    Monthly Usage
+                  </span>
+                  <span className="text-sm font-medium"
+>
+                    {mockPages.reduce((sum, p) => sum + p.sessions, 0)} / 1000
+                  </span>
+                </div>
+                <div className="w-full bg-bg-tertiary rounded-full h-2">
+                  <div className="h-2 rounded-full transition-all duration-300"
+                    style={{ 
+                      width: `${(mockPages.reduce((sum, p) => sum + p.sessions, 0) / 1000) * 100}%`,
+                      backgroundColor: 'var(--color-primary-yellow)'
+                    }}>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Heatmap Visualization */}
+          <div className="lg:col-span-2">
+            <div className="bg-bg-secondary border border-border-primary rounded-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold"
+>
+                  Heatmap Visualization
+                </h2>
+                <button className="btn btn-secondary text-sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </button>
+              </div>
+
+              {/* Heatmap Type Selector */}
+              <div className="flex gap-3 mb-6">
+                {heatmapTypes.map((type) => {
+                  const Icon = type.icon;
+                  return (
+                    <button
+                      key={type.id}
+                      onClick={() => setSelectedType(type.id)}
+                      className={`flex-1 p-3 rounded-lg border-2 transition-all ${
+                        selectedType === type.id
+                          ? 'border-[#F59E0B] bg-[#F59E0B]/10'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <Icon className="h-5 w-5 mx-auto mb-1" />
+                      <div className="text-sm font-medium"
+>
+                        {type.name}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Heatmap Canvas */}
+              {selectedPage ? (
+                <div className="bg-white rounded-lg p-8 min-h-[500px] relative">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <Eye className="h-16 w-16 mx-auto mb-4"
+ />
+                      <p className="text-lg font-medium mb-2"
+>
+                        {heatmapTypes.find(t => t.id === selectedType)?.name}
+                      </p>
+                      <p className="text-sm"
+>
+                        Heatmap visualization for {mockPages.find(p => p.id === selectedPage)?.url}
+                      </p>
+                      <p className="text-xs mt-4">
+                        Interactive heatmap rendering coming soon
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-bg-tertiary rounded-lg p-12 text-center">
+                  <MousePointer className="h-16 w-16 mx-auto mb-4"
+ />
+                  <p>
+                    Select a page to view heatmap
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Session Recordings */}
+            <div className="bg-bg-secondary border border-border-primary rounded-lg p-6 mt-6">
+              <h2 className="text-xl font-semibold mb-4"
+>
+                Recent Session Recordings
+              </h2>
+
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-bg-tertiary border border-border-primary rounded-lg p-4 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Play className="h-5 w-5 mr-3" />
+                      <div>
+                        <div className="font-medium"
+>
+                          Session #{1000 + i}
+                        </div>
+                        <div className="text-xs"
+>
+                          2 min 34 sec • {mockPages[0].url}
+                        </div>
+                      </div>
+                    </div>
+                    <button className="btn btn-secondary text-sm">
+                      <Play className="h-4 w-4 mr-1" />
+                      Watch
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Free Tier Notice */}
+        <div className="mt-8 bg-bg-tertiary border border-border-primary rounded-lg p-6">
+          <div className="flex items-start">
+            <Eye className="h-5 w-5 mr-3 flex-shrink-0 mt-0.5"
+ />
+            <div>
+              <h4 className="font-semibold mb-1"
+>
+                Free Tier Limits
+              </h4>
+              <p className="text-sm"
+>
+                Record up to 1,000 sessions per month across 5 pages. 
+                <Link href="/pricing" className="ml-1 underline"
+>
+                  Upgrade for unlimited tracking
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+

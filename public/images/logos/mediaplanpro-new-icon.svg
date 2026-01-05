@@ -1,0 +1,29 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient-primary" x1="0" y1="512" x2="512" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#334155" />
+    </linearGradient>
+    <linearGradient id="gradient-accent" x1="0" y1="512" x2="512" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#D97706" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background Shape (Optional, for app icon feel, usually transparent for web logo) -->
+  <!-- <rect width="512" height="512" rx="128" fill="url(#gradient-primary)" /> -->
+
+  <!-- Abstract M / Growth Symbol -->
+  <!-- Left Pillar -->
+  <path d="M120 400V200C120 177.909 137.909 160 160 160H190C212.091 160 230 177.909 230 200V400H120Z" fill="url(#gradient-primary)"/>
+  
+  <!-- Right Pillar (Higher, Accent) -->
+  <path d="M280 400V140C280 117.909 297.909 100 320 100H350C372.091 100 390 117.909 390 140V400H280Z" fill="url(#gradient-accent)"/>
+  
+  <!-- Connecting Curve / Bridge -->
+  <path d="M230 320H280V360H230V320Z" fill="#CBD5E1" fill-opacity="0.2"/>
+  
+  <!-- Base Line -->
+  <rect x="100" y="420" width="312" height="32" rx="16" fill="#1E293B"/>
+
+</svg>

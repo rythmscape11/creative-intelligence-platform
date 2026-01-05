@@ -1,0 +1,39 @@
+steps:
+  # Step 1: Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/antigravity-api:$COMMIT_SHA', '.']
+    id: 'Build'
+
+  # Step 2: Push the image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/antigravity-api:$COMMIT_SHA']
+    id: 'Push'
+
+  # Step 3: SAST Security Scan (using npm audit for Node.js backend)
+  # Frugal security gate: Fails build if high severity vulnerabilities found
+  - name: 'node:20'
+    entrypoint: 'npm'
+    args: ['audit', '--audit-level=high']
+    id: 'Security Scan'
+
+  # Step 4: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'antigravity-api'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/antigravity-api:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+    id: 'Deploy'
+
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/antigravity-api:$COMMIT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

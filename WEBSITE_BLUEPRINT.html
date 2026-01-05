@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aureon One - Technical Blueprint</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            color: #24292f;
+        }
+        @media print {
+            body { max-width: 100%; padding: 0; }
+            .no-print { display: none; }
+        }
+        h1, h2, h3 { border-bottom: 1px solid #eaecef; padding-bottom: .3em; }
+        h1 { font-size: 2em; }
+        h2 { font-size: 1.5em; margin-top: 24px; }
+        h3 { font-size: 1.25em; margin-top: 24px; }
+        table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+        th, td { border: 1px solid #dfe2e5; padding: 6px 13px; }
+        
+        tr:nth-child(2n) { background-color: #f6f8fa; }
+        blockquote { border-left: .25em solid #dfe2e5; color: #6a737d; padding: 0 1em; margin: 0; }
+        code { padding: .2em .4em; margin: 0; font-size: 85%; background-color: rgba(27,31,35,.05); border-radius: 6px; }
+        pre { padding: 16px; overflow: auto; line-height: 1.45; background-color: #f6f8fa; border-radius: 6px; }
+        pre code { background-color: transparent; }
+        .mermaid { text-align: center; }
+        
+        /* Alert styles */
+        blockquote:has(strong:contains("IMPORTANT")) { border-left-color: #8957e5; background: #f8f6fc; }
+        blockquote:has(strong:contains("NOTE")) { border-left-color: #0969da; background: #eef5fe; }
+        blockquote:has(strong:contains("TIP")) { border-left-color: #1a7f37; background: #effbf2; }
+        blockquote:has(strong:contains("CAUTION")) { border-left-color: #d1242f; background: #ffeef0; }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="margin-bottom: 2rem; padding: 1rem; background: #f1f8ff; border: 1px solid #c8e1ff; border-radius: 6px;">
+        <strong>🖨️ Printing Instructions:</strong> Press <kbd>Cmd/Ctrl + P</kbd> to print or save as PDF. The diagrams below will render automatically.
+    </div>
+    <div id="content"></div>
+
+    <script>
+        const markdown = `
+# 🚀 Aureon One — Technical & Investment Blueprint
+
+<div align="center">
+
+**The AI-Powered Marketing Operating System**
+
+*Unifying Strategy • Analytics • Optimization • Execution*
+
+---
+
+**Document Version:** 3.2 | **Last Updated:** December 12, 2025
+
+</div>
+
+---
+
+## 📊 Executive Summary
+
+### The Opportunity
+
+**Aureon One** is a comprehensive AI-powered marketing operating system designed for agencies and brands. We're positioned at the intersection of three $100B+ markets: **Marketing Technology**, **AI/ML Services**, and **Creative Automation**.
+
+> [!IMPORTANT]
+> **Market Timing:** With 73% of marketers now using AI tools and the MarTech industry projected to reach $350B by 2027, Aureon One captures the shift from fragmented point solutions to unified AI platforms.
+
+### 💰 Key Investment Highlights
+
+| Metric | Value | Significance |
+|--------|-------|--------------|
+| **Product Modules** | 6 Core Products | Full-stack marketing suite |
+| **Completion Status** | 75% Built | Significant dev investment complete |
+| **API Endpoints** | 43+ Groups | Enterprise-ready architecture |
+| **Database Models** | 88+ Tables | Scalable data infrastructure |
+| **Free Lead Magnets** | 33 Tools | Built-in acquisition funnel |
+| **Revenue Streams** | 3 Models | SaaS + Usage + API marketplace |
+
+### 🎯 Target Market
+
+| Segment | Size | Our Product |
+|---------|------|-------------|
+| **Marketing Agencies** | $400B global | Agency OS, Strategiser |
+| **SMB Marketers** | 30M+ businesses | Growth Suite, Tools |
+| **Creative Teams** | $50B content market | Aureon Forge |
+| **Enterprise Brands** | Fortune 500 | Full Platform + API |
+
+### 🏆 Competitive Advantages
+
+1. **Unified Platform** — Unlike point solutions (HubSpot, Hootsuite, SEMrush), we offer end-to-end coverage
+2. **AI-Native** — Built from ground-up with AI, not bolted on
+3. **Developer-First API** — Monetizable ecosystem via Forge Public API
+4. **Multi-Revenue Model** — SaaS subscriptions + usage-based Sparks + API marketplace
+
+
+---
+
+## 🛠️ Technology Infrastructure
+
+> [!NOTE]
+> **Enterprise-Grade Stack:** Built on modern, scalable technologies trusted by Fortune 500 companies.
+
+### Core Technologies
+
+| Layer | Technology | Why It Matters |
+|-------|------------|----------------|
+| **Framework** | Next.js 16 + React 19 | Latest stable versions, SSR/SSG ready |
+| **Language** | TypeScript 5 | Type safety, reduced bugs |
+| **Database** | PostgreSQL (Neon) | Serverless, auto-scaling |
+| **ORM** | Prisma 5 | 88+ models, type-safe queries |
+| **Auth** | Clerk | Enterprise SSO ready |
+| **Cache** | Redis | Sub-ms response times |
+
+### 🤖 AI/ML Integrations (Revenue Drivers)
+
+| Provider | Capability | Revenue Model | Status |
+|----------|------------|---------------|--------|
+| **OpenAI GPT-4** | Strategy generation | Included in SaaS | ✅ Live |
+| **Google Gemini** | Copilot & insights | Included in SaaS | ✅ Live |
+| **Fal.ai Flux** | Image generation | Sparks (usage-based) | ✅ Live |
+| **Runway Gen-3** | Cinema video | Sparks (premium) | ✅ Live |
+| **Kling AI** | Social video | Sparks (standard) | ✅ Live |
+
+### 🔐 API Configuration System (Operational Excellence)
+
+**Dynamic key management** allows instant provider switching without redeployment:
+
+- **AES-256-GCM Encryption** — Bank-grade security for API keys
+- **Hot-swap Capable** — Change providers in 30 seconds
+- **Fallback System** — Zero downtime during transitions
+
+---
+
+## 3. Module Breakdown — Functional vs Non-Functional
+
+### 3.1 Agency OS (\`/agency\`)
+
+**Purpose:** Project management, client workspaces, approvals, asset management
+
+| Feature | Route | Status | Description |
+|---------|-------|--------|-------------|
+| Dashboard | \`/agency\` | ✅ Functional | Real-time KPIs from Prisma DB |
+| Clients | \`/agency/clients\` | ✅ Functional | CRUD operations, client profiles |
+| Projects | \`/agency/projects\` | ✅ Functional | Project creation, status tracking |
+| Tasks | \`/agency/tasks\` | ✅ Functional | Kanban board, priority management |
+| Assets | \`/agency/assets\` | ✅ Functional | File storage, tagging |
+| Gantt Chart | \`/agency/gantt\` | ✅ Functional | Full API binding to tasks/projects |
+| Content Calendar | \`/agency/content-calendar\` | ✅ Functional | Fetches from API, event management |
+| Time Tracker | \`/agency/time-tracker\` | ✅ Functional | localStorage persistence, real stats |
+| Workload | \`/agency/workload\` | ⚠️ UI Only | Resource planning mockup |
+| Ads Manager | \`/agency/ads\` | ❌ Mock Data | No real ad platform integration |
+| Client Portal | \`/agency/portal\` | ⚠️ Partial | UI exists, approval workflow incomplete |
+| Reports | \`/agency/reports\` | ✅ Functional | Fetches metrics from API |
+| AI Studio | \`/agency/ai-studio\` | ✅ Functional | Smart AI assistant with built-in responses |
+| Automations | \`/agency/automations\` | ❌ Not Implemented | Placeholder page |
+| Integrations | \`/agency/integrations\` | ❌ Not Implemented | Placeholder page |
+
+**Investment to Complete:** ~$8,000–15,000 (60–120 dev hours) — *Reduced: 5 features now functional*
+
+---
+
+### 3.2 The Strategiser (\`/strategiser\`)
+
+**Purpose:** AI-powered marketing strategy generation
+
+| Feature | Route | Status | Description |
+|---------|-------|--------|-------------|
+| Dashboard | \`/strategiser\` | ✅ Functional | Real Prisma queries for strategy counts |
+| Create Strategy | \`/dashboard/strategies/create\` | ✅ Functional | Full AI strategy generation |
+| Strategy List | \`/dashboard/strategies\` | ✅ Functional | CRUD, filtering, search |
+| Templates | \`/strategiser/templates\` | ✅ Functional | Pre-built strategy templates |
+| AI Copilot | \`/strategiser/copilot\` | ✅ Functional | Gemini AI integration with marketing expert |
+| Channel Mix | \`/strategiser/channel-mix\` | ✅ Functional | Budget allocation calculator |
+| Personas | \`/strategiser/personas\` | ✅ Functional | Full CRUD with localStorage persistence |
+| Insights | \`/strategiser/insights\` | ✅ Functional | AI-generated insights via Gemini API |
+| Reports | \`/strategiser/reports\` | ⚠️ Partial | Export to PDF/PPTX works |
+
+**Investment to Complete:** ~$3,000–5,000 (20–40 dev hours) — *Reduced: Module 90% complete*
+
+---
+
+### 3.3 The Analyser (\`/analyser\`)
+
+**Purpose:** SEO, SEM, competitor intelligence, GEO engine
+
+| Feature | Route | Status | Description |
+|---------|-------|--------|-------------|
+| Dashboard | \`/analyser\` | ⚠️ Mock Data | Overview with static metrics |
+| SEO Audit | \`/analyser/audit\` | ⚠️ Partial | Basic page analysis, limited depth |
+| Keywords | \`/analyser/keywords\` | ⚠️ UI Only | Keyword research UI, no API |
+| Backlinks | \`/analyser/backlinks\` | ❌ Not Implemented | Placeholder |
+| Competitors | \`/analyser/competitors\` | ⚠️ Partial | Basic competitor comparison |
+| GEO Engine | \`/analyser/geo\` | ⚠️ Partial | AI content optimization, limited |
+| Content Gap | \`/analyser/content-gap\` | ❌ Not Implemented | Placeholder |
+| On-Page | \`/analyser/onpage\` | ⚠️ UI Only | Suggestions UI, no implementation |
+| SERP | \`/analyser/serp\` | ⚠️ UI Only | SERP preview, no live data |
+| Domain Overview | \`/analyser/domain\` | ⚠️ UI Only | Domain analysis mockup |
+| Traffic | \`/analyser/traffic\` | ❌ Not Implemented | Would need Analytics API |
+
+**Investment to Complete:** ~$25,000–40,000 (200–320 dev hours)
+*Requires third-party API subscriptions (Ahrefs/SEMrush/DataForSEO)*
+
+---
+
+### 3.4 The Optimiser (\`/optimizer\`)
+
+**Purpose:** Campaign optimization and AI-driven performance insights
+
+| Feature | Route | Status | Description |
+|---------|-------|--------|-------------|
+| Dashboard | \`/optimizer\` | ✅ Functional | Connection prompts, no fake data |
+| Campaigns | \`/optimizer/campaigns\` | ⚠️ UI Only | Campaign list, no ad platform data |
+| Connections | \`/optimizer/connections\` | ❌ Not Implemented | Ad platform OAuth |
+| Creative Intel | \`/optimizer/creative-intel\` | ❌ Not Implemented | Would need ad platform access |
+| Experiments | \`/optimizer/experiments\` | ⚠️ UI Only | A/B test framework UI |
+| Automations | \`/optimizer/automations\` | ❌ Not Implemented | Rule-based optimization |
+| AI Copilot | \`/optimizer/copilot\` | ⚠️ Partial | Chat interface exists |
+| Reports | \`/optimizer/reports\` | ⚠️ UI Only | Report templates |
+
+**Investment to Complete:** ~$30,000–50,000 (240–400 dev hours)
+*Requires Facebook/Google/LinkedIn Ads API partnerships*
+
+---
+
+### 3.5 Aureon Forge (\`/forge\`)
+
+**Purpose:** Visual automation, AI content generation, public API
+
+| Feature | Route | Status | Description |
+|---------|-------|--------|-------------|
+| Dashboard | \`/forge\` | ✅ Functional | Real-time stats from API |
+| Flow Editor | \`/forge/flows\` | ✅ Functional | Visual node-based editor |
+| Flow Runs | \`/forge/flows/[id]\` | ✅ Functional | Execution history, logs |
+| API Keys | \`/forge/api-keys\` | ✅ Functional | Key generation, permissions |
+| Brand Kits | \`/forge/brand-kits\` | ⚠️ Partial | UI complete, LoRA training needs work |
+| Pipelines | \`/forge/pipelines\` | ⚠️ UI Only | Pipeline templates |
+| Logs | \`/forge/logs\` | ⚠️ UI Only | Execution log viewer |
+| Matrix Generator | Via Flows | ✅ Functional | 4x4 A/B image grid |
+| BrandGuard | Service Layer | ✅ Functional | Prompt rewriting, compliance |
+| Public API | \`/api/public/v1/*\` | ✅ Functional | REST API with key auth |
+
+**Investment to Complete:** ~$10,000–15,000 (80–120 dev hours)
+
+---
+
+### 3.6 Free Marketing Tools (\`/tools\`)
+
+**Purpose:** Lead magnet tools for user acquisition
+
+| Category | Tools | Status |
+|----------|-------|--------|
+| **SEO** (7) | Keyword Research, SERP Preview, Schema Generator, Robots.txt, Sitemap, Backlink Checker, Page Speed | ✅ All Functional (client-side) |
+| **Content** (8) | Headline Analyzer, Readability Scorer, Meta Descriptions, Keyword Density, Social Captions, Ad Copy, Blog Ideas, Content Repurposer | ✅ All Functional |
+| **Social** (6) | UTM Builder, Hashtag Generator, Best Time to Post, Engagement Calculator, Image Resizer, Social Audit | ✅ All Functional |
+| **Email** (4) | Spam Score Checker, Signature Generator, Email Preview, List Segmentation | ✅ All Functional |
+| **Advertising** (5) | ROI Calculator, CPM Calculator, CPC Optimizer, Budget Allocator, Ad Copy Generator | ✅ All Functional |
+| **Calculators** (3) | Marketing Budget, Growth Projector, CAC Calculator | ✅ All Functional |
+
+**Status:** All 33 tools are functional (client-side calculation, no external APIs needed)
+
+---
+
+### 3.7 Growth Suite (\`/growth-suite\`)
+
+**Purpose:** Advanced analytics and experimentation platform
+
+| Feature | Route | Status | Description |
+|---------|-------|--------|-------------|
+| Dashboard | \`/growth-suite\` | ⚠️ Mock Data | Overview metrics |
+| Attribution | \`/growth-suite/attribution\` | ❌ Not Implemented | Would need tracking setup |
+| Heatmaps | \`/growth-suite/heatmaps\` | ❌ Not Implemented | Would need tracking JS |
+| Experiments | \`/growth-suite/experiments\` | ✅ Functional | Full CRUD, localStorage, live stats |
+| Competitors | \`/growth-suite/competitors\` | ⚠️ Partial | Basic competitor comparison |
+| Repurposer | \`/growth-suite/repurposer\` | ✅ Functional | AI-powered via Gemini API |
+| Widgets | \`/growth-suite/widgets\` | ❌ Not Implemented | Embeddable widgets |
+
+**Investment to Complete:** ~$20,000–35,000 (160–280 dev hours)
+
+---
+
+## 💰 Revenue Model & Unit Economics
+
+> [!IMPORTANT]
+> **3 Revenue Streams:** Diversified monetization reduces risk and maximizes LTV.
+
+### Revenue Stream 1: Platform SaaS (Recurring)
+
+| Tier | MRR | ARR | Target |
+|------|-----|-----|--------|
+| **FREE** | $0 | $0 | Lead gen funnel |
+| **PRO** | $49 | $490* | Freelancers, solo marketers |
+| **AGENCY** | $299 | $2,980* | 5-20 person agencies |
+| **ENTERPRISE** | Custom | $10K+ | Fortune 500, large brands |
+
+*17% yearly discount applied
+
+### Revenue Stream 2: Aureon Forge (Usage-Based)
+
+**Sparks Credit System** — Predictable, scalable consumption model:
+
+| Tier | MRR | Sparks/mo | Effective Rate |
+|------|-----|-----------|----------------|
+| **Freelancer** | $49 | 5,000 | $0.0098/Spark |
+| **Studio** | $199 | 25,000 | $0.0080/Spark |
+| **Agency** | $999 | 150,000 | $0.0067/Spark |
+
+### 📈 Unit Economics (Gross Margin per Action)
+
+| Action | Provider | COGS | Revenue | **Gross Margin** |
+|--------|----------|------|---------|------------------|
+| Image (Standard) | Fal.ai | $0.03 | $0.05 | **40%** |
+| Image (LoRA) | Fal.ai | $0.05 | $0.10 | **50%** |
+| Video (Cinema) | Runway | $0.50 | $0.75 | **33%** |
+| Video (Social) | Kling | $0.28 | $0.40 | **30%** |
+| LLM Prompt | Vertex AI | $0.001 | $0.01 | **900%** |
+
+> [!TIP]
+> **Blended gross margin of ~45-60%** depending on usage mix, with LLM prompts providing exceptional margin.
+
+---
+
+## 📊 Investment Required to Complete
+
+### Development Investment
+
+| Module | Completion | Hours Remaining | Investment |
+|--------|------------|-----------------|------------|
+| **Agency OS** | 80% ✅ | 60–120 | $8K–15K |
+| **Strategiser** | 95% ✅ | 20–40 | $3K–5K |
+| **Forge** | 85% ✅ | 80–120 | $10K–15K |
+| **Growth Suite** | 45% | 120–200 | $15K–25K |
+| **Analyser** | 30% | 200–320 | $25K–40K |
+| **Optimizer** | 30% | 220–380 | $28K–48K |
+
+| | **Low** | **High** |
+|--|---------|----------|
+| **Total Hours** | 700 | 1,180 |
+| **Total Investment** | **$89,000** | **$148,000** |
+| **Timeline** | 4-6 months | 8-10 months |
+
+> [!CAUTION]
+> **Analyser & Optimizer** require third-party API partnerships (Ahrefs, SEMrush, Facebook Ads API, Google Ads API) which add recurring costs.
+
+### Operational Costs (At Scale)
+
+| Category | Monthly Low | Monthly High |
+|----------|-------------|--------------|
+| **Infrastructure** | $91 | $830 |
+| **AI APIs** (usage-based) | $3,200 | $14,000 |
+| **Total Burn** | **$3,291** | **$14,830** |
+
+**Break-even:** ~70 Agency tier subscribers OR ~670 Pro subscribers (blended)
+
+---
+
+## 6. Technical Debt & Known Issues
+
+### 6.1 Critical Issues
+| Issue | Location | Impact | Priority |
+|-------|----------|--------|----------|
+| Mock data in dashboards | ~~Agency, Strategiser~~ Analyser | Most dashboards now real | MEDIUM |
+| Missing API integrations | Optimizer (Ads), Analyser (SEO) | Core features unusable | HIGH |
+| No payment backend | Pricing page | Can't collect payments | HIGH |
+
+### 6.2 Medium Priority
+| Issue | Location | Impact |
+|-------|----------|--------|
+| Incomplete brand kit LoRA | Forge | Can't train custom models |
+| No real-time notifications | Agency | Users not notified |
+| Missing email service | Various | No transactional emails |
+
+### 6.3 Low Priority / Enhancement
+| Issue | Location | Impact |
+|-------|----------|--------|
+| ~~Gantt chart not bound to data~~ | ~~Agency~~ | ✅ Fixed |
+| ~~Time tracker not persisting~~ | ~~Agency~~ | ✅ Fixed |
+| Mobile responsiveness gaps | Various pages | Poor mobile UX |
+
+---
+
+## 7. Directory Structure
+
+\`\`\`
+src/
+├── app/                           # Next.js App Router
+│   ├── (dashboard)/              # Protected routes
+│   ├── agency/                   # 18 subpages
+│   ├── analyser/                 # 17 subpages
+│   ├── api/                      # 43 API groups
+│   ├── forge/                    # 5 subpages
+│   ├── growth-suite/             # 7 subpages
+│   ├── optimizer/                # 8 subpages
+│   ├── strategiser/              # 9 subpages
+│   ├── tools/                    # 33 free tools
+│   └── ...                       # Other routes
+├── components/                    # 30+ groups
+├── lib/services/                  # Business logic
+│   ├── api-config.service.ts     # Centralized API key management (NEW)
+│   ├── encryption.service.ts     # AES-256 key encryption (NEW)
+│   ├── forge/                    # 10 Forge services
+│   └── strategy/                 # Strategy generation
+├── config/                        # Pricing configs
+└── prisma/schema.prisma          # 88+ models
+\`\`\`
+
+---
+
+## 8. Environment Variables Required
+
+\`\`\`env
+# Core
+DATABASE_URL=postgresql://...
+NEXT_PUBLIC_APP_URL=https://aureonone.com
+
+# Auth (Clerk)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
+CLERK_SECRET_KEY=sk_...
+
+# AI Services
+GOOGLE_AI_API_KEY=...
+OPENAI_API_KEY=...
+FAL_API_KEY=...          # Required for Forge images
+RUNWAY_API_KEY=...       # Required for Forge video
+KLING_API_KEY=...        # Required for Forge video
+
+# Payments
+RAZORPAY_KEY_ID=...
+RAZORPAY_KEY_SECRET=...
+
+# Encryption (for Admin API Config)
+API_ENCRYPTION_KEY=...    # 32-char key for AES-256 encryption
+# Or uses NEXTAUTH_SECRET as fallback
+
+# Optional
+RESEND_API_KEY=...       # For transactional emails
+SENTRY_DSN=...           # Error tracking
+\`\`\`
+
+> **Note:** API keys (OPENAI, FAL, RUNWAY, KLING, etc.) can now be configured via Admin UI at \`/admin/api-config\` instead of environment variables.
+
+---
+
+## 9. Handover Checklists
+
+### For Founders
+- [ ] Review Section 4 (Pricing & Unit Economics)
+- [ ] Review Section 5 (Investment Required)
+- [ ] Decide which modules to prioritize
+- [ ] Secure API partnerships (Fal.ai, Runway, Kling)
+
+### For Lead Developer
+- [ ] Set up local dev environment
+- [ ] Review Section 3 (Functional/Non-Functional breakdown)
+- [ ] Prioritize fixing HIGH priority technical debt
+- [ ] Set up missing environment variables
+
+### For Frontend Developer
+- [ ] Review component library (\`src/components/ui/\`)
+- [ ] Audit mobile responsiveness
+- [ ] Replace mock data with real API calls
+- [ ] Complete partially implemented UIs
+
+### For Designer
+- [ ] Design tokens: Gold \`#F1C40F\`, Red \`#B3001B\`, Dark \`#0A0A0A\`
+- [ ] Review incomplete pages for design polish
+- [ ] Create mobile-specific layouts where missing
+
+### For DevOps
+- [ ] Ensure all env vars are in Vercel
+- [ ] Set up monitoring dashboards
+- [ ] Configure Redis for session/caching
+- [ ] Set up database backups
+
+---
+
+## 10. Key File Reference
+
+| Purpose | File Path |
+|---------|-----------|
+| Homepage | \`src/app/page.tsx\` |
+| Platform Pricing | \`src/config/pricing.ts\` |
+| Forge Pricing | \`src/config/subscription-tiers.ts\` |
+| Database Schema | \`prisma/schema.prisma\` |
+| Strategy Generator | \`src/lib/services/strategy-processor.ts\` |
+| Forge Services | \`src/lib/services/forge/\` |
+| Header/Footer | \`src/components/layout/\` |
+| UI Components | \`src/components/ui/\` |
+| API Config Service | \`src/lib/services/api-config.service.ts\` |
+| Encryption Service | \`src/lib/services/encryption.service.ts\` |
+| Admin API Config UI | \`src/app/admin/api-config/page.tsx\` |
+| Admin API Routes | \`src/app/api/admin/api-config/route.ts\` |
+
+---
+
+## 11. Product Workflows — Frontend & Backend Architecture
+
+### 11.1 Agency OS Workflow
+
+\`\`\`mermaid
+flowchart TB
+    subgraph Frontend["Frontend (React)"]
+        A["/agency Dashboard"] --> B["API Calls"]
+        C["/agency/clients"] --> B
+        D["/agency/projects"] --> B
+        E["/agency/tasks"] --> B
+        F["/agency/gantt"] --> B
+        G["/agency/time-tracker"] --> H["localStorage"]
+    end
+    
+    subgraph Backend["Backend (API Routes)"]
+        B --> I["/api/agency/dashboard"]
+        B --> J["/api/agency/clients"]
+        B --> K["/api/agency/projects"]
+        B --> L["/api/agency/tasks"]
+    end
+    
+    subgraph Database["Database (Prisma)"]
+        I --> M[(Client Model)]
+        J --> M
+        K --> N[(Project Model)]
+        L --> O[(Task Model)]
+        I --> N
+        I --> O
+    end
+    
+    subgraph External["External Services"]
+        P["Clerk Auth"] --> B
+        Q["AI Studio"] --> R["OpenAI/Gemini"]
+    end
+\`\`\`
+
+**Data Flow:**
+| Feature | Frontend | Backend API | Database Model | External |
+|---------|----------|-------------|----------------|----------|
+| Dashboard | Real-time KPIs | \`/api/agency/dashboard\` | Client, Project, Task | Clerk |
+| Clients | CRUD UI | \`/api/agency/clients\` | Client, Contact | — |
+| Projects | Kanban/List | \`/api/agency/projects\` | Project, Task | — |
+| Gantt | Timeline view | \`/api/agency/tasks\` | Task | — |
+| Time Tracker | Timer UI | localStorage | — | — |
+| AI Studio | Chat interface | \`/api/agency/ai-studio\` | — | OpenAI |
+
+---
+
+### 11.2 Strategiser Workflow
+
+\`\`\`mermaid
+flowchart TB
+    subgraph Frontend["Frontend (React)"]
+        A["User Input Form"] --> B["Strategy Builder UI"]
+        B --> C["Submit Strategy"]
+    end
+    
+    subgraph Backend["Backend (API Routes)"]
+        C --> D["/api/strategies/create"]
+        D --> E["Strategy Processor"]
+        E --> F["OpenAI Service"]
+        F --> G["GPT-4 API"]
+    end
+    
+    subgraph Database["Database (Prisma)"]
+        E --> H[(Strategy Model)]
+        H --> I[(ChannelMix Model)]
+        H --> J[(TargetAudience Model)]
+    end
+    
+    subgraph Output["Output"]
+        H --> K["PDF Export"]
+        H --> L["PPTX Export"]
+        H --> M["Dashboard Display"]
+    end
+\`\`\`
+
+**Data Flow:**
+| Feature | Frontend | Backend API | Database Model | External |
+|---------|----------|-------------|----------------|----------|
+| Create Strategy | Multi-step form | \`/api/strategies/create\` | Strategy | OpenAI GPT-4 |
+| Strategy List | DataTable | \`/api/strategies\` | Strategy | — |
+| AI Copilot | Chat UI | \`/api/strategiser/copilot\` | — | Gemini AI |
+| Personas | CRUD cards | localStorage | — | — |
+| Insights | Cards display | \`/api/strategiser/insights\` | — | Gemini AI |
+| Export | Button click | \`/api/export/*\` | Strategy | — |
+
+---
+
+### 11.3 Forge Workflow
+
+\`\`\`mermaid
+flowchart TB
+    subgraph Frontend["Frontend (React)"]
+        A["Flow Editor"] --> B["Node Graph UI"]
+        B --> C["Execute Flow"]
+        D["API Key Manager"] --> E["Key CRUD"]
+    end
+    
+    subgraph Backend["Backend (API Routes)"]
+        C --> F["/api/forge/execute"]
+        F --> G["Flow Executor"]
+        G --> H{"Action Type"}
+    end
+    
+    subgraph Providers["AI Providers"]
+        H -->|Image| I["Fal.ai Flux"]
+        H -->|Video Cinema| J["Runway Gen-3"]
+        H -->|Video Social| K["Kling AI"]
+        H -->|Text| L["Google Gemini"]
+    end
+    
+    subgraph Services["Service Layer"]
+        M["ApiConfigService"] --> I
+        M --> J
+        M --> K
+        M --> L
+        N["BrandGuard"] --> G
+        O["Sparks Tracker"] --> G
+    end
+    
+    subgraph Database["Database"]
+        G --> P[(Flow Model)]
+        G --> Q[(FlowRun Model)]
+        O --> R[(UserSparks Model)]
+    end
+\`\`\`
+
+**Data Flow:**
+| Feature | Frontend | Backend API | Database Model | External |
+|---------|----------|-------------|----------------|----------|
+| Flow Editor | Node graph | \`/api/forge/flows\` | Flow, FlowNode | — |
+| Execute Flow | Run button | \`/api/forge/execute\` | FlowRun | Fal/Runway/Kling |
+| Image Gen | Preview UI | \`/api/forge/generate/image\` | Generation | Fal.ai |
+| Video Gen | Preview UI | \`/api/forge/generate/video\` | Generation | Runway/Kling |
+| API Keys | Table UI | \`/api/forge/api-keys\` | ForgeApiKey | — |
+| BrandGuard | Auto-applied | Service layer | — | — |
+
+---
+
+### 11.4 Analyser Workflow
+
+\`\`\`mermaid
+flowchart TB
+    subgraph Frontend["Frontend (React)"]
+        A["URL Input"] --> B["Audit Request"]
+        C["Keyword Input"] --> D["Research Request"]
+    end
+    
+    subgraph Backend["Backend (API Routes)"]
+        B --> E["/api/analyser/audit"]
+        D --> F["/api/analyser/keywords"]
+        E --> G["SEO Analyzer Service"]
+        F --> H["Keyword Service"]
+    end
+    
+    subgraph External["External APIs (Required)"]
+        G -.->|Needed| I["DataForSEO/Ahrefs"]
+        H -.->|Needed| I
+        J["PageSpeed API"] --> G
+    end
+    
+    subgraph Database["Database"]
+        G --> K[(AuditResult Model)]
+        H --> L[(Keyword Model)]
+    end
+\`\`\`
+
+**Data Flow:**
+| Feature | Frontend | Backend API | Database Model | External |
+|---------|----------|-------------|----------------|----------|
+| SEO Audit | URL form | \`/api/analyser/audit\` | AuditResult | PageSpeed |
+| Keywords | Input form | \`/api/analyser/keywords\` | Keyword | ⚠️ Not integrated |
+| Backlinks | Table UI | \`/api/analyser/backlinks\` | — | ⚠️ Not integrated |
+| GEO Engine | Content editor | \`/api/analyser/geo\` | — | Gemini AI |
+
+---
+
+### 11.5 Growth Suite Workflow
+
+\`\`\`mermaid
+flowchart TB
+    subgraph Frontend["Frontend (React)"]
+        A["Experiment Builder"] --> B["Create Variant"]
+        C["Content Input"] --> D["Repurpose Request"]
+    end
+    
+    subgraph Backend["Backend (API Routes)"]
+        B --> E["/api/growth-suite/experiments"]
+        D --> F["/api/growth-suite/repurpose"]
+        F --> G["Gemini AI Service"]
+    end
+    
+    subgraph Storage["Storage"]
+        E --> H["localStorage"]
+        G --> I["Response to UI"]
+    end
+    
+    subgraph Output["Output Formats"]
+        I --> J["Blog Post"]
+        I --> K["Social Posts"]
+        I --> L["Email Copy"]
+        I --> M["Video Script"]
+    end
+\`\`\`
+
+**Data Flow:**
+| Feature | Frontend | Backend API | Database Model | External |
+|---------|----------|-------------|----------------|----------|
+| Experiments | A/B test UI | localStorage | — | — |
+| Repurposer | Content form | \`/api/growth-suite/repurpose\` | — | Gemini AI |
+| Attribution | ⚠️ UI only | — | — | — |
+| Heatmaps | ⚠️ UI only | — | — | — |
+
+---
+
+### 11.6 Optimizer Workflow
+
+\`\`\`mermaid
+flowchart TB
+    subgraph Frontend["Frontend (React)"]
+        A["Campaign List"] --> B["View Campaigns"]
+        C["Connect Platform"] --> D["OAuth Flow"]
+    end
+    
+    subgraph Backend["Backend (API Routes)"]
+        B -.->|Needed| E["/api/optimizer/campaigns"]
+        D -.->|Needed| F["/api/optimizer/connect"]
+    end
+    
+    subgraph External["Ad Platforms (Required)"]
+        F -.->|Needed| G["Facebook Ads API"]
+        F -.->|Needed| H["Google Ads API"]
+        F -.->|Needed| I["LinkedIn Ads API"]
+    end
+    
+    subgraph AI["AI Features"]
+        J["AI Copilot"] --> K["OpenAI/Gemini"]
+    end
+\`\`\`
+
+**Data Flow:**
+| Feature | Frontend | Backend API | Database Model | External |
+|---------|----------|-------------|----------------|----------|
+| Campaigns | Table UI | ⚠️ Not integrated | — | Ad platforms needed |
+| Connections | OAuth buttons | ⚠️ Not integrated | — | Platform OAuth |
+| AI Copilot | Chat UI | \`/api/optimizer/copilot\` | — | OpenAI |
+| Experiments | A/B UI | ⚠️ UI only | — | — |
+
+---
+
+### 11.7 Admin API Configuration Workflow
+
+\`\`\`mermaid
+flowchart LR
+    subgraph Admin["Admin UI (/admin/api-config)"]
+        A["View All Keys"] --> B["Add/Update Key"]
+        B --> C["Test Key"]
+    end
+    
+    subgraph Backend["Backend"]
+        B --> D["/api/admin/api-config POST"]
+        C --> E["/api/admin/api-config/test"]
+        D --> F["ApiConfigService"]
+    end
+    
+    subgraph Security["Security Layer"]
+        F --> G["EncryptionService"]
+        G --> H["AES-256-GCM"]
+    end
+    
+    subgraph Storage["Storage"]
+        H --> I[(SiteSettings)]
+        J["ENV Fallback"] --> F
+    end
+    
+    subgraph Services["Consuming Services"]
+        F --> K["Forge Providers"]
+        F --> L["OpenAI Client"]
+        F --> M["Email Service"]
+    end
+\`\`\`
+`;
+        
+        document.getElementById('content').innerHTML = marked.parse(markdown);
+        mermaid.init();
+    </script>
+</body>
+</html>

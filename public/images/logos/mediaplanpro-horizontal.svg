@@ -1,0 +1,45 @@
+<svg width="280" height="56" viewBox="0 0 280 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Premium Gradient for Icon -->
+    <linearGradient id="iconBgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FBBF24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FCD34D;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Text Gradient for Icon Letters -->
+    <linearGradient id="iconTextGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F3F4F6;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Filter for subtle shadow -->
+    <filter id="textShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- Icon Background -->
+  <rect x="4" y="4" width="48" height="48" rx="12" fill="url(#iconBgGradient)"/>
+  <rect x="4" y="4" width="48" height="48" rx="12" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+
+  <!-- MP Letters in Icon -->
+  <g transform="translate(28, 28)">
+    <!-- M Letter -->
+    <path d="M -14 -10 L -14 10 L -10 10 L -10 -2 L -6 6 L -2 6 L 2 -2 L 2 10 L 6 10 L 6 -10 L 0 -10 L -4 2 L -8 -10 Z"
+          fill="url(#iconTextGradient)"/>
+
+    <!-- P Letter -->
+    <path d="M 8 -10 L 8 10 L 12 10 L 12 2 L 16 2 C 18 2 20 0 20 -3 L 20 -7 C 20 -10 18 -10 16 -10 Z M 12 -6 L 16 -6 C 16.5 -6 16 -5 16 -4 L 16 -3 C 16 -2 16.5 -2 16 -2 L 12 -2 Z"
+          fill="url(#iconTextGradient)"/>
+  </g>
+
+  <!-- Highlight on Icon -->
+  <ellipse cx="18" cy="18" rx="8" ry="6" fill="rgba(255,255,255,0.15)" opacity="0.6"/>
+
+  <!-- Brand Name Text - Professional Typography -->
+  <text x="68" y="36" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="24" font-weight="700" fill="#FFFFFF" letter-spacing="-0.5" filter="url(#textShadow)">
+    MediaPlanPro
+  </text>
+</svg>
+

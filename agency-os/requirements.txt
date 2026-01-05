@@ -1,0 +1,6 @@
+# Vercel Python Runtime Requirements
+fastapi>=0.104
+uvicorn[standard]>=0.24
+pydantic>=2.5
+httpx>=0.25
+asyncpg>=0.29

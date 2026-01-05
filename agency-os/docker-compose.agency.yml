@@ -1,0 +1,126 @@
+# Agency OS Docker Compose
+# Extends Plane's docker-compose with agency extension services
+
+version: "3.8"
+
+services:
+  # ============================================
+  # Agency Extension Service
+  # ============================================
+  agency-extensions:
+    build:
+      context: ./extensions
+      dockerfile: Dockerfile
+    container_name: agency-extensions
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://plane:plane@plane-db:5432/plane
+      - PLANE_API_URL=http://api:8000
+      - PLANE_API_KEY=${PLANE_API_KEY:-}
+      - DJANGO_SETTINGS_MODULE=extensions.settings
+      - SECRET_KEY=${EXTENSION_SECRET_KEY:-changeme}
+    depends_on:
+      - plane-db
+      - api
+    networks:
+      - plane-network
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================
+  # Plane Core Services (inherit from plane/docker-compose.yml)
+  # ============================================
+  
+  # Database (shared with extensions)
+  plane-db:
+    image: postgres:15.5-alpine
+    container_name: plane-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: plane
+      POSTGRES_PASSWORD: plane
+      POSTGRES_DB: plane
+    volumes:
+      - plane-db-data:/var/lib/postgresql/data
+      # Initialize extension tables
+      - ./extensions/migrations/init.sql:/docker-entrypoint-initdb.d/99-extensions.sql:ro
+    networks:
+      - plane-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U plane -d plane"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (Plane's cache)
+  plane-redis:
+    image: redis:7.2-alpine
+    container_name: plane-redis
+    restart: unless-stopped
+    networks:
+      - plane-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Plane API Server
+  api:
+    image: makeplane/plane-backend:stable
+    container_name: plane-api
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://plane:plane@plane-db:5432/plane
+      - REDIS_URL=redis://plane-redis:6379
+      - SECRET_KEY=${PLANE_SECRET_KEY:-your-secret-key}
+      - DJANGO_SETTINGS_MODULE=plane.settings.production
+    depends_on:
+      plane-db:
+        condition: service_healthy
+      plane-redis:
+        condition: service_healthy
+    networks:
+      - plane-network
+    ports:
+      - "8000:8000"
+
+  # Plane Web Frontend
+  web:
+    image: makeplane/plane-frontend:stable
+    container_name: plane-web
+    restart: unless-stopped
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://api:8000
+    depends_on:
+      - api
+    networks:
+      - plane-network
+    ports:
+      - "3000:3000"
+
+  # Plane Space (public project pages)
+  space:
+    image: makeplane/plane-space:stable
+    container_name: plane-space
+    restart: unless-stopped
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://api:8000
+    depends_on:
+      - api
+    networks:
+      - plane-network
+    ports:
+      - "3001:3000"
+
+networks:
+  plane-network:
+    driver: bridge
+
+volumes:
+  plane-db-data:

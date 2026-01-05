@@ -1,0 +1,3523 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // relationMode not needed for PostgreSQL
+}
+
+enum UserRole {
+  ADMIN
+  EDITOR
+  USER
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String?  @unique // Clerk user ID for syncing
+  email     String   @unique
+  name      String
+  password  String? // Optional for Clerk users (OAuth)
+  role      UserRole @default(USER)
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Password Reset (for legacy password-based users)
+  resetToken       String?
+  resetTokenExpiry DateTime?
+
+  // Relations
+  strategies MarketingStrategy[]
+  blogPosts  BlogPost[]
+  exportJobs ExportJob[]
+  files      File[]
+  sessions   Session[]
+
+  // Growth Suite Relations
+  experiments        Experiment[]
+  growthEvents       GrowthEvent[]
+  growthSessions     GrowthSession[]
+  seoBriefs          SeoBrief[]
+  repurposeJobs      RepurposeJob[]
+  widgets            Widget[]
+  heatmapData        HeatmapData[]
+  sessionRecordings  SessionRecording[]
+  competitors        Competitor[]
+  growthSuiteUsage   GrowthSuiteUsage[]
+  growthIntegrations GrowthIntegration[]
+
+  // Payment Relations
+  subscription Subscription?
+  payments     Payment[]
+  invoices     Invoice[]
+
+  // Marketing Tools Relations
+  toolUsage       ToolUsage[]
+  dailyToolLimits DailyToolLimit[]
+
+  // Services Relations
+  servicePurchases ServicePurchase[]
+  serviceInquiries ServiceInquiry[]
+
+  // Integration Relations
+  integrations Integration[]
+
+  // AI Usage
+  aiUsage AiUsage[]
+
+  // Competition Reports
+  competitionReports CompetitionReport[]
+
+  // Agency Relations
+  agencyClients AgencyClient[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model MarketingStrategy {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String? // Strategy name for easier identification
+  input       String // JSON stored as string
+  output      String? // JSON stored as string
+  generatedBy String   @default("AI") // AI or FALLBACK
+  status      String   @default("DRAFT") // DRAFT, ACTIVE, COMPLETED, ARCHIVED
+  tags        String? // Comma-separated tags
+  notes       String? // User notes/comments
+  version     Int      @default(1) // Version number for history
+  isArchived  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exportJobs ExportJob[]
+  comments   StrategyComment[]
+  versions   StrategyVersion[]
+  shares     StrategyShare[]
+
+  @@map("marketing_strategies")
+}
+
+model StrategyComment {
+  id         String   @id @default(cuid())
+  strategyId String
+  userId     String
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  strategy MarketingStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@map("strategy_comments")
+}
+
+model StrategyVersion {
+  id         String   @id @default(cuid())
+  strategyId String
+  version    Int
+  input      String // JSON stored as string
+  output     String? // JSON stored as string
+  createdBy  String
+  createdAt  DateTime @default(now())
+
+  // Relations
+  strategy MarketingStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@map("strategy_versions")
+}
+
+model StrategyShare {
+  id          String    @id @default(cuid())
+  strategyId  String
+  sharedBy    String // User ID who shared
+  sharedWith  String? // Email or user ID (null for public link)
+  accessLevel String    @default("VIEW") // VIEW, COMMENT, EDIT
+  token       String    @unique // Unique token for sharing link
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  strategy MarketingStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@map("strategy_shares")
+}
+
+model StrategyTemplate {
+  id          String   @id @default(cuid())
+  name        String // Template name (e.g., "Healthcare Marketing Strategy")
+  slug        String   @unique // URL-friendly slug (e.g., "healthcare")
+  industry    String // Industry category
+  description String // Brief description of the template
+  icon        String? // Icon/emoji for the template
+  objectives  String // JSON array of business objectives
+  audience    String // JSON object with target audience details
+  channels    String // JSON array of recommended marketing channels
+  budget      String // JSON object with budget allocation
+  kpis        String // JSON array of key performance indicators
+  isPro       Boolean  @default(true) // Requires Pro subscription
+  isActive    Boolean  @default(true)
+  usageCount  Int      @default(0) // Track how many times template is used
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("strategy_templates")
+}
+
+model BlogPost {
+  id             String    @id @default(cuid())
+  title          String
+  slug           String    @unique
+  content        String
+  excerpt        String
+  featuredImage  String?
+  authorId       String
+  categoryId     String
+  status         String    @default("DRAFT") // DRAFT, PUBLISHED, SCHEDULED, ARCHIVED
+  seoTitle       String?
+  seoDescription String?
+  publishedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  author   User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+  tags     Tag[]    @relation("BlogPostTags")
+
+  @@map("blog_posts")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  color       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  blogPosts BlogPost[]
+
+  @@map("categories")
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  blogPosts BlogPost[] @relation("BlogPostTags")
+
+  @@map("tags")
+}
+
+model ExportJob {
+  id          String    @id @default(cuid())
+  userId      String
+  strategyId  String
+  format      String // PPTX, DOCX, XLSX
+  status      String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  fileUrl     String?
+  filename    String?
+  s3Key       String?
+  error       String?
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  // Relations
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  strategy MarketingStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@map("export_jobs")
+}
+
+model File {
+  id          String   @id @default(cuid())
+  userId      String
+  filename    String
+  s3Key       String   @unique
+  contentType String
+  size        Int
+  category    String // avatar, logo, document, image, temp
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("files")
+}
+
+model Analytics {
+  id         String   @id @default(cuid())
+  event      String
+  properties String? // JSON stored as string
+  userId     String?
+  sessionId  String?
+  ipAddress  String?
+  userAgent  String?
+  referrer   String?
+  page       String?
+  timestamp  DateTime @default(now())
+
+  @@map("analytics")
+}
+
+model UserActivity {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String // LOGIN, LOGOUT, CREATE_STRATEGY, EDIT_POST, etc.
+  entityType String? // STRATEGY, BLOG_POST, USER, etc.
+  entityId   String?
+  details    String? // JSON stored as string
+  ipAddress  String?
+  userAgent  String?
+  timestamp  DateTime @default(now())
+
+  @@map("user_activities")
+}
+
+model StrategyGenerationMetric {
+  id           String  @id @default(cuid())
+  strategyId   String? // Reference to created strategy (null if failed)
+  userId       String? // User who generated the strategy
+  strategyType String // 'FREE', 'ENHANCED', 'BASIC'
+  status       String // 'SUCCESS', 'FAILED', 'TIMEOUT'
+  generatedBy  String? // 'AI', 'FALLBACK'
+
+  // Timing metrics (in milliseconds)
+  startTime  DateTime  @default(now())
+  endTime    DateTime?
+  durationMs Int? // Total generation time
+
+  // Step-by-step timing
+  validationMs Int? // Time spent on input validation
+  generationMs Int? // Time spent on actual generation
+  dbSaveMs     Int? // Time spent saving to database
+
+  // Error tracking
+  errorType    String? // 'VALIDATION_ERROR', 'GENERATION_ERROR', 'DB_ERROR', 'TIMEOUT_ERROR'
+  errorMessage String? // Error message if failed
+  errorStack   String? // Error stack trace
+
+  // Request metadata
+  ipAddress String?
+  userAgent String?
+
+  // Input metadata (for analysis)
+  industry   String?
+  budget     Int?
+  timeframe  String?
+  objectives String? // JSON array as string
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([strategyType])
+  @@index([status])
+  @@index([createdAt])
+  @@map("strategy_generation_metrics")
+}
+
+model SiteSettings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String // JSON stored as string for complex values
+  category    String // GENERAL, EMAIL, SEO, SOCIAL, API, SECURITY
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+model Redirect {
+  id        String   @id @default(cuid())
+  fromPath  String   @unique
+  toPath    String
+  type      Int      @default(301) // 301 or 302
+  isActive  Boolean  @default(true)
+  hitCount  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("redirects")
+}
+
+// ============================================================================
+// GROWTH SUITE MODELS
+// ============================================================================
+
+model Experiment {
+  id             String    @id @default(cuid())
+  userId         String
+  name           String
+  description    String?
+  variants       String // JSON array
+  trafficSplit   String // JSON object
+  targetingRules String? // JSON object
+  status         String    @default("draft") // draft, running, paused, completed
+  startDate      DateTime?
+  endDate        DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  user   User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events ExperimentEvent[]
+
+  @@map("experiments")
+}
+
+model ExperimentEvent {
+  id           String   @id @default(cuid())
+  experimentId String
+  sessionId    String
+  variantId    String
+  eventType    String // view, conversion, custom
+  eventName    String?
+  properties   String? // JSON object
+  timestamp    DateTime @default(now())
+
+  // Relations
+  experiment Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+
+  @@map("experiment_events")
+}
+
+model GrowthEvent {
+  id         String   @id @default(cuid())
+  userId     String
+  sessionId  String
+  eventName  String
+  eventType  String   @default("pageview") // pageview, conversion, custom
+  properties String? // JSON object
+  revenue    Float    @default(0)
+  timestamp  DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("growth_events")
+}
+
+model GrowthSession {
+  id           String   @id @default(cuid())
+  userId       String
+  sessionId    String   @unique
+  utmSource    String?
+  utmMedium    String?
+  utmCampaign  String?
+  utmTerm      String?
+  utmContent   String?
+  referrer     String?
+  landingPage  String?
+  firstEventAt DateTime @default(now())
+  lastEventAt  DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("growth_sessions")
+}
+
+model SeoBrief {
+  id               String   @id @default(cuid())
+  userId           String
+  keyword          String
+  opportunityScore Float?
+  impressions      Int?
+  clicks           Int?
+  ctr              Float?
+  position         Float?
+  searchVolume     Int?
+  content          String // JSON object
+  status           String   @default("draft") // draft, generated, exported
+  generatedAt      DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("seo_briefs")
+}
+
+model RepurposeJob {
+  id            String    @id @default(cuid())
+  userId        String
+  sourceUrl     String?
+  sourceContent String
+  outputs       String // JSON object
+  status        String    @default("pending") // pending, processing, completed, failed
+  errorMessage  String?
+  createdAt     DateTime  @default(now())
+  completedAt   DateTime?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("repurpose_jobs")
+}
+
+model Widget {
+  id             String   @id @default(cuid())
+  userId         String
+  name           String
+  type           String // exit-intent, slide-in, sticky-bar, countdown, social-proof
+  config         String // JSON object
+  targetingRules String? // JSON object
+  status         String   @default("draft") // draft, active, paused, archived
+  installSnippet String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events WidgetEvent[]
+
+  @@map("widgets")
+}
+
+model WidgetEvent {
+  id         String   @id @default(cuid())
+  widgetId   String
+  sessionId  String
+  eventType  String // view, click, close, conversion
+  properties String? // JSON object
+  timestamp  DateTime @default(now())
+
+  // Relations
+  widget Widget @relation(fields: [widgetId], references: [id], onDelete: Cascade)
+
+  @@map("widget_events")
+}
+
+model HeatmapData {
+  id             String   @id @default(cuid())
+  userId         String
+  pageUrl        String
+  eventType      String // click, scroll, move
+  xPosition      Int?
+  yPosition      Int?
+  scrollDepth    Int?
+  viewportWidth  Int?
+  viewportHeight Int?
+  timestamp      DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("heatmap_data")
+}
+
+model SessionRecording {
+  id            String    @id @default(cuid())
+  userId        String
+  sessionId     String    @unique
+  pageUrl       String
+  recordingData String? // JSON object
+  duration      Int       @default(0) // in seconds
+  status        String    @default("recording") // recording, completed, expired
+  createdAt     DateTime  @default(now())
+  expiresAt     DateTime?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session_recordings")
+}
+
+model Competitor {
+  id        String   @id @default(cuid())
+  userId    String
+  domain    String
+  name      String?
+  keywords  String // JSON array
+  status    String   @default("active") // active, paused, archived
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snapshots CompetitorSnapshot[]
+
+  @@map("competitors")
+}
+
+model CompetitorSnapshot {
+  id           String   @id @default(cuid())
+  competitorId String
+  keyword      String
+  position     Int?
+  url          String?
+  title        String?
+  description  String?
+  snapshotData String? // JSON object
+  snapshotDate DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  // Relations
+  competitor Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+
+  @@map("competitor_snapshots")
+}
+
+model GrowthSuiteUsage {
+  id        String   @id @default(cuid())
+  userId    String
+  tool      String // experiments, attribution, seo, repurposer, widgets, heatmaps, competitors
+  action    String
+  quotaUsed Int      @default(1)
+  metadata  String? // JSON object
+  timestamp DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("growth_suite_usage")
+}
+
+model GrowthIntegration {
+  id             String    @id @default(cuid())
+  userId         String
+  provider       String // google-analytics, google-search-console, google-ads, hubspot, mailerlite, brevo
+  accessToken    String?
+  refreshToken   String?
+  tokenExpiresAt DateTime?
+  config         String? // JSON object
+  status         String    @default("active") // active, expired, revoked
+  connectedAt    DateTime  @default(now())
+  lastSyncAt     DateTime?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("growth_integrations")
+}
+
+model TrackingCode {
+  id        String   @id @default(cuid())
+  name      String // e.g., "Google Analytics", "Meta Pixel"
+  code      String   @db.Text // The actual tracking code snippet
+  type      String // ANALYTICS, PIXEL, TAG_MANAGER, CUSTOM
+  position  String // HEAD, BODY_START, BODY_END
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tracking_codes")
+}
+
+// ============================================================================
+// PAYMENT & SUBSCRIPTION MODELS
+// ============================================================================
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+  AGENCY      // New agency tier (replaces TEAM)
+  TEAM        // Legacy - kept for backwards compatibility
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  UNPAID
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  CANCELED
+}
+
+model Subscription {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Stripe Integration
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+  stripePriceId        String?
+  stripeProductId      String?
+
+  // Razorpay Integration
+  razorpayCustomerId     String?
+  razorpaySubscriptionId String? @unique
+  razorpayPlanId         String?
+
+  // Subscription Details
+  plan           SubscriptionPlan   @default(FREE)
+  status         SubscriptionStatus @default(ACTIVE)
+  paymentGateway String?            @default("stripe") // "stripe" or "razorpay"
+
+  // Billing
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean   @default(false)
+  canceledAt         DateTime?
+  trialStart         DateTime?
+  trialEnd           DateTime?
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Admin Whitelisting (for manually granted tier access)
+  whitelistedAt DateTime?
+  whitelistedBy String?
+
+  @@map("subscriptions")
+}
+
+model Payment {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Stripe Integration
+  stripePaymentId String? @unique
+  stripeInvoiceId String?
+
+  // Razorpay Integration
+  razorpayPaymentId String? @unique
+  razorpayOrderId   String?
+
+  // Payment Details
+  amount         Int // Amount in cents (or paise for INR)
+  currency       String        @default("usd")
+  status         PaymentStatus @default(PENDING)
+  description    String?
+  paymentGateway String?       @default("stripe") // "stripe" or "razorpay"
+
+  // Metadata
+  metadata  Json? // Additional payment metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  invoice Invoice?
+
+  @@map("payments")
+}
+
+model Invoice {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentId String?  @unique
+  payment   Payment? @relation(fields: [paymentId], references: [id])
+
+  // Stripe Integration
+  stripeInvoiceId String? @unique
+
+  // Invoice Details
+  invoiceNumber String  @unique
+  amount        Int // Amount in cents
+  currency      String  @default("usd")
+  status        String // DRAFT, OPEN, PAID, VOID, UNCOLLECTIBLE
+  description   String?
+
+  // Billing Details
+  billingName    String?
+  billingEmail   String?
+  billingAddress Json? // Address object
+
+  // Dates
+  invoiceDate DateTime  @default(now())
+  dueDate     DateTime?
+  paidAt      DateTime?
+
+  // PDF
+  pdfUrl String?
+
+  // Metadata
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("invoices")
+}
+
+// ============================================
+// AGENCY WHITE-LABEL FEATURES
+// ============================================
+
+// Agency branding settings for white-label reports
+model AgencyBranding {
+  id     String @id @default(cuid())
+  userId String @unique
+  
+  // Branding Assets
+  logoUrl          String?  // Agency logo URL
+  logoLightUrl     String?  // Light version for dark backgrounds
+  faviconUrl       String?  // Custom favicon
+  
+  // Brand Colors
+  primaryColor     String   @default("#6366f1") // Primary brand color
+  secondaryColor   String   @default("#8b5cf6") // Secondary color
+  accentColor      String   @default("#06b6d4") // Accent color
+  
+  // Typography
+  headingFont      String   @default("Inter")
+  bodyFont         String   @default("Inter")
+  
+  // Custom Domain
+  customDomain     String?  @unique // e.g., agency.example.com
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("agency_branding")
+}
+
+// ============================================
+// DIGITAL PRODUCTS (FRAMEWORKS)
+// ============================================
+
+model Product {
+  id                  String   @id @default(cuid())
+  slug                String   @unique
+  name                String
+  description         String
+  price               Int      // in paise
+  currency            String   @default("INR")
+  razorpayProductId   String?
+  razorpayPriceId     String?
+  assets              String   // JSON string of downloadable assets (url, name)
+  isActive            Boolean  @default(true)
+  
+  // CMS Fields for Framework Management
+  shortDescription    String?  @db.Text
+  longDescription     String?  @db.Text
+  problemStatement    String?  @db.Text
+  outcomes            String?  @db.Text
+  idealFor            String?  @db.Text
+  notIdealFor         String?  @db.Text
+  deliverables        String?  @db.Text  // JSON array of deliverable items
+  howToUse            String?  @db.Text
+  credibilityText     String?  @db.Text
+  
+  // SEO
+  seoTitle            String?
+  seoDescription      String? @db.Text
+  
+  // Status
+  status              String   @default("published") // draft | published
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  purchases           ProductPurchase[]
+
+  @@map("products")
+}
+
+model ProductPurchase {
+  id                String   @id @default(cuid())
+  email             String
+  productId         String
+  razorpayOrderId   String   @unique
+  razorpayPaymentId String?  @unique
+  amount            Int
+  currency          String
+  status            String   // PENDING, COMPLETED, FAILED
+  accessKey         String   @unique // Token for accessing downloads
+  expiresAt         DateTime? // Optional expiry for the link
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  product           Product  @relation(fields: [productId], references: [id])
+
+  @@index([email])
+  @@map("product_purchases")
+}
+
+
+
+// ============================================
+// AGENCY OPS MODELS (NEW SEGMENT)
+// ============================================
+
+// ============================================
+
+model Agency {
+  id          String   @id @default(cuid())
+  name        String
+  workspaceId String   @unique // Could be mapped to a Team or Organization concept later
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  clients     AgencyClient[]
+  projects    AgencyProject[]
+  
+  @@map("agencies")
+}
+
+model AgencyClient {
+  id          String   @id @default(cuid())
+  userId      String?  // Linked to User (Agency Owner)
+  agencyId    String?  // Optional for now (if single tenant), required later
+  name        String
+  industry    String?
+  website     String?
+  status      String   @default("ACTIVE") // ACTIVE, INACTIVE, LEAD
+  npsScore    Int?     // Net Promoter Score (0-10)
+  lastNpsDate DateTime?
+  portalAccessKey String? @unique // For shared link access
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  brands      AgencyBrand[]
+  projects    AgencyProject[]
+  contacts    AgencyContact[]
+  
+  // Relation to main Agency table (if used)
+  agency      Agency?  @relation(fields: [agencyId], references: [id])
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("agency_clients")
+}
+
+model AgencyBrand {
+  id          String   @id @default(cuid())
+  clientId    String
+  name        String
+  guidelines  String?  // Link to brand guidelines or JSON
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  client      AgencyClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projects    AgencyProject[]
+
+  @@map("agency_brands")
+}
+
+model AgencyContact {
+  id          String   @id @default(cuid())
+  clientId    String
+  name        String
+  email       String
+  role        String?
+  phone       String?
+  createdAt   DateTime @default(now())
+  
+  client      AgencyClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("agency_contacts")
+}
+
+model AgencyProject {
+  id          String   @id @default(cuid())
+  agencyId    String?
+  clientId    String
+  brandId     String?
+  name        String
+  description String?
+  status      String   @default("PLANNED") // PLANNED, IN_PROGRESS, REVIEW, COMPLETED, ON_HOLD
+  priority    String   @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  startDate   DateTime?
+  endDate     DateTime?
+  budget      Float?
+  currency    String   @default("USD")
+  
+  // Custom fields (JSON for flexibility)
+  customFields Json?   @default("{}")
+  
+  // Tags for categorization
+  tags        String[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  agency      Agency?      @relation(fields: [agencyId], references: [id])
+  client      AgencyClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  brand       AgencyBrand? @relation(fields: [brandId], references: [id])
+  
+  jobs        AgencyJob[]
+  assets      AgencyAsset[]
+  campaigns   AgencyCampaign[]
+
+  @@map("agency_projects")
+}
+
+model AgencyJob {
+  id          String   @id @default(cuid())
+  projectId   String
+  title       String
+  type        String   // CREATIVE, MEDIA, SEO, DEV, STRATEGY, PRODUCTION, OTHER
+  status      String   @default("TODO") // TODO, IN_PROGRESS, REVIEW, DONE
+  assigneeId  String?  // Link to User
+  description String?
+  dueDate     DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project     AgencyProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks       AgencyTask[]
+
+  @@map("agency_jobs")
+}
+
+model AgencyTask {
+  id          String   @id @default(cuid())
+  jobId       String
+  title       String
+  description String?
+  status      String   @default("TODO") // TODO, IN_PROGRESS, REVIEW, DONE
+  priority    String   @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  assigneeId  String?
+  dueDate     DateTime?
+  estimatedHours Float?
+  
+  // Custom fields (JSON for flexibility)
+  customFields Json?   @default("{}")
+  
+  // Task dependencies - blocked by other tasks
+  blockedByIds String[]  // Array of task IDs that block this task
+  
+  // Recurring task settings
+  isRecurring   Boolean @default(false)
+  recurringRule String? // cron expression: "0 9 * * 1" for every Monday 9am
+  parentTaskId  String? // Original task if this is a recurring instance
+  
+  // Labels for quick categorization
+  labels      String[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  job         AgencyJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  comments    AgencyTaskComment[]
+
+  @@index([status])
+  @@index([assigneeId])
+  @@index([parentTaskId])
+  @@map("agency_tasks")
+}
+
+
+
+
+model AgencyAsset {
+  id            String   @id @default(cuid())
+  projectId     String
+  name          String
+  type          String   // DOCUMENT, IMAGE, VIDEO, AUDIO, REPORT, OTHER
+  storagePath   String   // GCS Path
+  publicUrl     String?  // Signed URL or public URL
+  mimeType      String?
+  size          Int?
+  uploadedBy    String?
+  createdAt     DateTime @default(now())
+
+  project       AgencyProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("agency_assets")
+}
+
+// ============================================
+// CAMPAIGN MANAGER MODULE
+// ============================================
+
+enum CampaignObjective {
+  AWARENESS
+  LEADS
+  SALES
+  ENGAGEMENT
+  RETENTION
+  TRAFFIC
+  APP_INSTALLS
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+enum MarketingChannel {
+  FACEBOOK
+  INSTAGRAM
+  LINKEDIN
+  TWITTER
+  YOUTUBE
+  GOOGLE_ADS
+  GOOGLE_DISPLAY
+  EMAIL
+  SMS
+  TIKTOK
+  PINTEREST
+  PROGRAMMATIC
+  INFLUENCER
+  OOH
+  TV
+  RADIO
+  PRINT
+  OTHER
+}
+
+model AgencyCampaign {
+  id          String   @id @default(cuid())
+  projectId   String
+  name        String
+  description String?
+  
+  // Campaign Configuration
+  objective   CampaignObjective @default(AWARENESS)
+  status      CampaignStatus    @default(DRAFT)
+  
+  // Timeline
+  startDate   DateTime?
+  endDate     DateTime?
+  
+  // Budget
+  budget      Float     @default(0)
+  currency    String    @default("USD")
+  spentAmount Float     @default(0)
+  
+  // Target Channels (JSON array of MarketingChannel)
+  channels    String    @default("[]") // JSON array
+  
+  // KPIs & Goals (JSON object)
+  kpis        String    @default("{}") // JSON: { impressions: 100000, clicks: 5000, ... }
+  
+  // Automation Rules (JSON array)
+  automationRules String @default("[]") // JSON: [{ trigger, action, conditions }]
+  
+  // Metadata
+  tags        String[]
+  notes       String?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdBy   String?   // User ID who created
+  
+  // Relations
+  project             AgencyProject              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  channelAllocations  CampaignChannelAllocation[]
+  contentPosts        AgencyContentPost[]
+  reports             AgencyReport[]
+  
+  @@index([projectId])
+  @@index([status])
+  @@index([objective])
+  @@map("agency_campaigns")
+}
+
+model CampaignChannelAllocation {
+  id          String   @id @default(cuid())
+  campaignId  String
+  channel     MarketingChannel
+  
+  // Budget Allocation
+  budget            Float   @default(0)
+  percentAllocation Float   @default(0) // 0-100
+  
+  // Target Metrics (JSON)
+  targetMetrics     String  @default("{}") // { impressions, clicks, conversions, ctr, cpc, cpm }
+  
+  // Actual Performance (updated by integrations)
+  actualMetrics     String  @default("{}") // Same structure as targetMetrics
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  campaign    AgencyCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  
+  @@unique([campaignId, channel])
+  @@index([campaignId])
+  @@map("campaign_channel_allocations")
+}
+
+// Placeholder for Content Calendar module
+model AgencyContentPost {
+  id          String   @id @default(cuid())
+  campaignId  String?
+  projectId   String
+  platform    String   // FACEBOOK, INSTAGRAM, etc.
+  postType    String   @default("IMAGE") // IMAGE, VIDEO, CAROUSEL, STORY, REEL, TEXT
+  caption     String
+  mediaUrls   String   @default("[]") // JSON array of URLs
+  scheduledFor DateTime?
+  publishedAt DateTime?
+  status      String   @default("DRAFT") // DRAFT, PENDING_APPROVAL, APPROVED, SCHEDULED, PUBLISHED, FAILED
+  approvedBy  String?
+  approvalNotes String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?
+  
+  campaign    AgencyCampaign? @relation(fields: [campaignId], references: [id])
+  
+  @@index([campaignId])
+  @@index([projectId])
+  @@index([status])
+  @@map("agency_content_posts")
+}
+
+// Placeholder for Reporting module
+model AgencyReport {
+  id          String   @id @default(cuid())
+  clientId    String?
+  campaignId  String?
+  type        String   @default("MONTHLY") // MONTHLY, WEEKLY, CAMPAIGN, CUSTOM
+  dateRange   String   @default("{}") // JSON: { start, end }
+  metrics     String   @default("{}") // JSON metrics data
+  summary     String?  // AI-generated summary
+  pdfUrl      String?
+  status      String   @default("GENERATING") // GENERATING, READY, SENT, VIEWED
+  scheduledFor DateTime?
+  sentAt      DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  campaign    AgencyCampaign? @relation(fields: [campaignId], references: [id])
+  
+  @@index([campaignId])
+  @@index([clientId])
+  @@map("agency_reports")
+}
+
+// ============================================
+// AD PLATFORM INTEGRATION MODULE
+// ============================================
+
+enum AdPlatform {
+  META
+  FACEBOOK
+  GOOGLE_ADS
+  YOUTUBE
+  LINKEDIN
+  TIKTOK
+  TWITTER
+  PINTEREST
+}
+
+enum AdStatus {
+  DRAFT
+  PENDING
+  ACTIVE
+  PAUSED
+  COMPLETED
+  DELETED
+  REJECTED
+}
+
+enum OptimizationMode {
+  MANUAL
+  RULE_BASED
+  AI_DRIVEN
+}
+
+model AdPlatformConnection {
+  id           String     @id @default(cuid())
+  agencyId     String?
+  clientId     String?
+  platform     AdPlatform
+  accountId    String     // Platform-specific account ID
+  accountName  String?
+  accessToken  String     // Encrypted
+  refreshToken String?    // Encrypted
+  tokenExpiry  DateTime?
+  status       String     @default("CONNECTED") // CONNECTED, DISCONNECTED, ERROR
+  lastSyncAt   DateTime?
+  syncError    String?
+  
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  
+  ads          PlatformAd[]
+  
+  @@unique([agencyId, platform, accountId])
+  @@index([platform])
+  @@index([status])
+  @@map("ad_platform_connections")
+}
+
+model PlatformAd {
+  id               String   @id @default(cuid())
+  connectionId     String
+  campaignId       String?  // Link to AgencyCampaign
+  platformAdId     String?  // ID in the external platform
+  platformCampaignId String? // Platform's campaign ID
+  
+  // Ad Details
+  name             String
+  headline         String?
+  description      String?
+  callToAction     String?
+  destinationUrl   String?
+  mediaUrls        String   @default("[]") // JSON
+  
+  // Targeting
+  targeting        String   @default("{}") // JSON: { age, location, interests, etc. }
+  
+  // Status & Objective
+  status           AdStatus @default(DRAFT)
+  objective        String?  // AWARENESS, TRAFFIC, CONVERSIONS, etc.
+  
+  // Budget
+  budget           Float    @default(0)
+  dailyBudget      Float?
+  spentAmount      Float    @default(0)
+  currency         String   @default("USD")
+  
+  // Performance Metrics
+  impressions      Int      @default(0)
+  clicks           Int      @default(0)
+  conversions      Int      @default(0)
+  ctr              Float    @default(0) // Click-through rate
+  cpc              Float    @default(0) // Cost per click
+  cpm              Float    @default(0) // Cost per mille
+  roas             Float    @default(0) // Return on ad spend
+  
+  // Optimization
+  optimizationMode OptimizationMode @default(MANUAL)
+  optimizationRules String   @default("[]") // JSON rules
+  aiRecommendations String   @default("[]") // JSON AI suggestions
+  lastOptimizedAt  DateTime?
+  
+  // Dates
+  startDate        DateTime?
+  endDate          DateTime?
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  createdBy        String?
+  
+  connection       AdPlatformConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  
+  @@index([connectionId])
+  @@index([campaignId])
+  @@index([status])
+  @@index([optimizationMode])
+  @@map("platform_ads")
+}
+
+model AdOptimizationRule {
+  id          String   @id @default(cuid())
+  agencyId    String?
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  
+  // Rule Definition
+  triggerType String   // CPC_THRESHOLD, CTR_THRESHOLD, ROAS_THRESHOLD, BUDGET_SPENT, etc.
+  triggerOperator String // GREATER_THAN, LESS_THAN, EQUALS
+  triggerValue Float
+  
+  // Action
+  actionType  String   // PAUSE_AD, INCREASE_BUDGET, DECREASE_BUDGET, NOTIFY, etc.
+  actionValue String?  // e.g., "10" for 10% budget change
+  
+  // Execution Tracking
+  executionCount Int    @default(0)
+  lastExecutedAt DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([agencyId])
+  @@index([isActive])
+  @@map("ad_optimization_rules")
+}
+
+// ============================================
+// PROJECT MANAGEMENT ENHANCEMENTS
+// ============================================
+
+model AgencyTaskComment {
+  id        String   @id @default(cuid())
+  taskId    String
+  userId    String
+  content   String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  task      AgencyTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  @@index([taskId])
+  @@map("agency_task_comments")
+}
+
+model AgencyTimeEntry {
+  id          String   @id @default(cuid())
+  taskId      String?
+  jobId       String?
+  projectId   String
+  userId      String
+  description String?
+  
+  startTime   DateTime
+  endTime     DateTime?
+  duration    Int?     // Duration in minutes
+  billable    Boolean  @default(true)
+  hourlyRate  Float?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([taskId])
+  @@index([projectId])
+  @@index([userId])
+  @@map("agency_time_entries")
+}
+
+model AgencyNotification {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // TASK_ASSIGNED, COMMENT_ADDED, DEADLINE_APPROACHING, AD_ALERT, etc.
+  title       String
+  message     String
+  link        String?  // URL to relevant page
+  isRead      Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([isRead])
+  @@map("agency_notifications")
+}
+
+// Client workspaces for agency sub-accounts
+model ClientWorkspace {
+  id      String @id @default(cuid())
+  ownerId String // Agency user who owns this workspace
+  
+  // Client Details
+  clientName    String
+  clientEmail   String?
+  clientCompany String?
+  clientLogoUrl String?
+  
+  // Branding Override (optional)
+  primaryColor  String?
+  secondaryColor String?
+  
+  // Portal Configuration
+  portalSlug    String?   @unique // e.g., "tech-startup" for tech-startup.portal.mediaplanpro.com
+  customDomain  String?   // Custom portal domain
+  portalFeatures String?  // JSON array of enabled features
+  lastAccessAt  DateTime? // Last client access timestamp
+  
+  // Workspace Settings
+  isActive      Boolean @default(true)
+  
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  strategies ClientStrategy[]
+  
+  @@index([ownerId])
+  @@map("client_workspaces")
+}
+
+// Strategies created under a client workspace
+model ClientStrategy {
+  id          String @id @default(cuid())
+  workspaceId String
+  workspace   ClientWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  // Strategy Data
+  name        String
+  input       String  // JSON stored as string
+  output      String? // JSON stored as string
+  status      String  @default("DRAFT")
+  
+  // White-label Export
+  exportedAt       DateTime?
+  exportedPdfUrl   String?
+  brandingApplied  Boolean @default(false)
+  
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("client_strategies")
+}
+
+// ============================================
+// MARKETING TOOLS SUITE
+// ============================================
+
+// Track individual tool usage
+model ToolUsage {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toolId   String // e.g., "headline-analyzer", "roi-calculator"
+  toolName String // Human-readable name
+  category String // content, seo, social, email, advertising
+  usedAt   DateTime @default(now())
+  metadata Json? // Store tool-specific data (optional)
+
+  @@index([userId])
+  @@index([toolId])
+  @@index([usedAt])
+  @@index([userId, toolId, usedAt])
+  @@map("tool_usage")
+}
+
+// Track daily usage limits (10 uses/tool/day for free tier)
+model DailyToolLimit {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toolId    String
+  date      DateTime @db.Date
+  count     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, toolId, date])
+  @@index([userId, date])
+  @@index([toolId, date])
+  @@map("daily_tool_limits")
+}
+
+model AiUsage {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  model        String // e.g., "gpt-4", "gpt-3.5-turbo"
+  tokensInput  Int      @default(0)
+  tokensOutput Int      @default(0)
+  cost         Float    @default(0) // Cost in USD
+  feature      String // e.g., "compliance", "strategy", "blog"
+  timestamp    DateTime @default(now())
+
+  @@index([userId])
+  @@index([timestamp])
+  @@map("ai_usage")
+}
+
+// ============================================
+// CRO & LEAD CAPTURE MODELS
+// ============================================
+
+// Save tool results for registered users
+model SavedToolResult {
+  id         String   @id @default(cuid())
+  userId     String
+  toolId     String // e.g., "headline-analyzer", "roi-calculator"
+  toolName   String // Human-readable name
+  category   String // content, seo, social, email, advertising
+  input      Json // Tool input data
+  output     Json // Tool output/results
+  title      String? // User-defined title for saved result
+  notes      String? // User notes
+  isFavorite Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([toolId])
+  @@index([userId, toolId])
+  @@index([createdAt])
+  @@map("saved_tool_results")
+}
+
+// Email subscribers (newsletter, lead magnets)
+model EmailSubscriber {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  name            String?
+  source          String? // newsletter, exit-intent, tool-result, blog, etc.
+  status          String    @default("active") // active, unsubscribed, bounced
+  tags            String? // Comma-separated tags
+  metadata        Json? // Additional data (e.g., which tool they used)
+  subscribedAt    DateTime  @default(now())
+  unsubscribedAt  DateTime?
+  lastEmailSentAt DateTime?
+
+  @@index([email])
+  @@index([status])
+  @@index([source])
+  @@map("email_subscribers")
+}
+
+// Lead captures (exit-intent, popups, forms)
+model LeadCapture {
+  id          String  @id @default(cuid())
+  email       String
+  name        String?
+  phone       String? // Phone number (optional)
+  company     String? // Company name (optional)
+  source      String // exit-intent, post-tool-use, newsletter, gated-content, contact_form, service_inquiry
+  page        String? // URL where lead was captured
+  toolId      String? // If captured from a tool page
+  budgetRange String? // Budget range (optional)
+  hearAboutUs String? // How did you hear about us (optional)
+
+  // UTM Parameters for tracking marketing campaigns
+  utmSource   String? // UTM source (e.g., google, facebook, linkedin)
+  utmMedium   String? // UTM medium (e.g., cpc, email, social)
+  utmCampaign String? // UTM campaign name
+  utmTerm     String? // UTM term (for paid search keywords)
+  utmContent  String? // UTM content (for A/B testing)
+
+  metadata   Json? // Additional data
+  ipAddress  String?
+  userAgent  String?
+  capturedAt DateTime @default(now())
+
+  @@index([email])
+  @@index([source])
+  @@index([capturedAt])
+  @@index([utmSource])
+  @@index([utmMedium])
+  @@index([utmCampaign])
+  @@map("lead_captures")
+
+  // Relations
+  sequences LeadSequence[]
+}
+
+model LeadSequence {
+  id            String    @id @default(cuid())
+  leadCaptureId String
+  leadCapture   LeadCapture @relation(fields: [leadCaptureId], references: [id], onDelete: Cascade)
+  
+  status        String    @default("ACTIVE") // ACTIVE, COMPLETED, FAILED, STOPPED
+  currentStep   Int       @default(0)
+  nextRunAt     DateTime?
+  lastRunAt     DateTime?
+  
+  // AI Context
+  aiContext     String?   @db.Text // JSON string of context for AI (industry, pain points, etc.)
+  
+  // Email History
+  emailsSent    LeadEmail[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([leadCaptureId])
+  @@index([status])
+  @@index([nextRunAt])
+  @@map("lead_sequences")
+}
+
+model LeadEmail {
+  id             String       @id @default(cuid())
+  sequenceId     String
+  sequence       LeadSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  
+  subject        String
+  content        String       @db.Text
+  sentAt         DateTime     @default(now())
+  messageId      String?      // Provider message ID
+  
+  // Engagement
+  openedAt       DateTime?
+  clickedAt      DateTime?
+  
+  @@index([sequenceId])
+  @@map("lead_emails")
+}
+
+// Premium feature usage tracking
+model PremiumFeatureUsage {
+  id       String   @id @default(cuid())
+  userId   String
+  feature  String // save-result, pdf-export, ai-recommendation, etc.
+  toolId   String?
+  metadata Json?
+  usedAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([feature])
+  @@index([usedAt])
+  @@map("premium_feature_usage")
+}
+
+// ============================================================================
+// SERVICES & SERVICE PURCHASES
+// ============================================================================
+
+enum ServiceCategory {
+  MARKETING_STRATEGY
+  SEO
+  CONTENT_MARKETING
+  PAID_ADVERTISING
+  SOCIAL_MEDIA
+  EMAIL_MARKETING
+  ANALYTICS
+  WEB_DEVELOPMENT
+  WEB_DESIGN
+  WEB_MAINTENANCE
+}
+
+enum ServiceTier {
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum BillingType {
+  ONE_TIME
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum ServicePurchaseStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+model ServicePurchase {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Service Details
+  serviceId       String // Reference to service in config
+  serviceName     String
+  serviceCategory ServiceCategory
+  serviceTier     ServiceTier
+  billingType     BillingType
+
+  // Pricing
+  amount   Int // Amount in cents (or paise for INR)
+  currency String @default("usd")
+
+  // Payment Integration
+  paymentId              String?
+  stripePaymentId        String?
+  razorpayPaymentId      String?
+  razorpayOrderId        String?
+  razorpaySubscriptionId String?
+  paymentGateway         String? @default("razorpay") // "stripe" or "razorpay"
+
+  // Status
+  status ServicePurchaseStatus @default(PENDING)
+
+  // Subscription Details (for recurring services)
+  subscriptionActive Boolean   @default(false)
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean   @default(false)
+  canceledAt         DateTime?
+
+  // Delivery & Completion
+  deliveryStartDate DateTime?
+  deliveryEndDate   DateTime?
+  completedAt       DateTime?
+
+  // Additional Details
+  requirements Json? // Client requirements and brief
+  deliverables Json? // Delivered files/links
+  notes        String? @db.Text
+  metadata     Json?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([serviceCategory])
+  @@index([status])
+  @@index([createdAt])
+  @@map("service_purchases")
+}
+
+model ServiceInquiry {
+  id     String  @id @default(cuid())
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Contact Details
+  name    String
+  email   String
+  phone   String?
+  company String?
+
+  // Inquiry Details
+  serviceCategory ServiceCategory
+  serviceInterest String // Specific service they're interested in
+  budget          String? // Budget range
+  timeline        String? // Project timeline
+  message         String          @db.Text
+  hearAboutUs     String? // How did you hear about us
+
+  // Status
+  status     String  @default("NEW") // NEW, CONTACTED, QUALIFIED, CONVERTED, CLOSED
+  assignedTo String? // Admin user ID who's handling this
+
+  // Follow-up
+  followUpDate    DateTime?
+  lastContactedAt DateTime?
+
+  // Metadata
+  source    String? // Where the inquiry came from
+  ipAddress String?
+  userAgent String?
+  metadata  Json?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([serviceCategory])
+  @@index([createdAt])
+  @@map("service_inquiries")
+}
+
+// ============================================
+// INTEGRATION MODELS
+// ============================================
+
+enum IntegrationType {
+  MAILCHIMP
+  CONVERTKIT
+  SENDGRID
+  BREVO
+  MEDIUM
+  DEVTO
+  HASHNODE
+  CANVA
+  FIGMA
+  UNSPLASH
+  STRIPE
+  PAYPAL
+  WOOCOMMERCE
+  SHOPIFY
+  GOOGLE_ANALYTICS
+  MIXPANEL
+  HOTJAR
+  PLAUSIBLE
+  HUBSPOT
+  SALESFORCE
+  PIPEDRIVE
+  BUFFER
+  HOOTSUITE
+  CUSTOM_WEBHOOK
+}
+
+enum IntegrationStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+  PENDING
+}
+
+enum IntegrationCategory {
+  EMAIL_MARKETING
+  BLOG_TOOLS
+  DESIGN_TOOLS
+  ECOMMERCE
+  ANALYTICS
+  CRM
+  SOCIAL_MEDIA
+  CUSTOM
+}
+
+model Integration {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Integration Details
+  type        IntegrationType
+  category    IntegrationCategory
+  name        String
+  description String?
+
+  // Configuration
+  apiKey       String? // Encrypted
+  apiSecret    String? // Encrypted
+  accessToken  String? // Encrypted
+  refreshToken String? // Encrypted
+  serverPrefix String? // For Mailchimp (e.g., "us1")
+  webhookUrl   String?
+
+  // Settings (JSON for flexible configuration)
+  settings Json? // Audience IDs, automation toggles, etc.
+
+  // Status
+  status     IntegrationStatus @default(PENDING)
+  isActive   Boolean           @default(false)
+  lastSyncAt DateTime?
+  lastError  String?
+  errorCount Int               @default(0)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  logs IntegrationLog[]
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([isActive])
+  @@map("integrations")
+}
+
+enum IntegrationLogType {
+  SYNC
+  ERROR
+  CONFIG_CHANGE
+  CONNECTION_TEST
+  WEBHOOK
+  CAMPAIGN_SENT
+  CONTACT_ADDED
+  CONTACT_UPDATED
+}
+
+enum IntegrationLogStatus {
+  SUCCESS
+  FAILED
+  PENDING
+  PARTIAL
+}
+
+model IntegrationLog {
+  id            String      @id @default(cuid())
+  integrationId String
+  integration   Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  // Log Details
+  type   IntegrationLogType
+  status IntegrationLogStatus
+  action String // e.g., "sync_contact", "send_campaign"
+
+  // Data
+  requestData  Json? // Request payload
+  responseData Json? // Response data
+  errorMessage String?
+  errorStack   String?
+
+  // Metadata
+  recordsProcessed Int?
+  recordsFailed    Int?
+  duration         Int? // Duration in milliseconds
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  @@index([integrationId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@map("integration_logs")
+}
+
+// ============================================
+// BLOG AUTOMATION CONFIG
+// ============================================
+
+model BlogAutomationConfig {
+  id          String   @id @default(cuid())
+  isActive    Boolean  @default(false)
+  frequency   String   @default("DAILY") // DAILY, WEEKLY, BIWEEKLY
+  wordCount   Int      @default(2000)
+  topics      String[] // Array of strings for topics
+  lastRunAt   DateTime?
+  nextRunAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("blog_automation_config")
+}
+
+// Agency OS Automation Rules
+model AutomationRule {
+  id            String   @id @default(cuid())
+  userId        String
+  projectId     String?  // Optional project scope
+  
+  // Rule Definition
+  name          String
+  description   String?
+  trigger       String   // task_status_changed, task_assigned, etc.
+  triggerConfig Json?    // Trigger-specific configuration
+  conditions    Json?    // Array of conditions
+  actions       Json     // Array of actions with type + config
+  
+  // State
+  enabled       Boolean  @default(true)
+  triggerCount  Int      @default(0)
+  lastTriggered DateTime?
+  
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([enabled, trigger])
+  @@map("automation_rules")
+}
+
+model AutomationLog {
+  id        String   @id @default(cuid())
+  action    String   // e.g., "RESEARCH", "GENERATE", "PUBLISH"
+  status    String   // "SUCCESS", "FAILED", "IN_PROGRESS"
+  message   String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@map("automation_logs")
+}
+
+model PricingPlan {
+  id                String   @id // e.g., "PRO", "AGENCY", or custom UUID
+  name              String
+  description       String?
+  tagline           String?
+  targetAudience    String?
+  
+  // Pricing
+  priceMonthly      Int      // in cents/paise
+  priceYearly       Int      // in cents/paise
+  currency          String   @default("INR")
+  
+  // Razorpay IDs
+  razorpayIdMonthly String?
+  razorpayIdYearly  String?
+  
+  // Configuration (JSON)
+  features          String   // JSON array of PricingFeature
+  limits            String   // JSON object of limits
+  
+  // UI
+  popular           Boolean  @default(false)
+  cta               String   @default("Subscribe")
+  ctaSecondary      String?
+  badge             String?
+  
+  isActive          Boolean  @default(true)
+  updatedAt         DateTime @updatedAt
+  
+  @@map("pricing_plans")
+}
+
+// ============================================
+// AI CACHING SYSTEM
+// ============================================
+
+model AiCache {
+  key            String   @id
+  prompt         String   // First 1000 chars for debugging
+  model          String
+  response       String   @db.Text
+  expiresAt      DateTime
+  hitCount       Int      @default(0)
+  createdAt      DateTime @default(now())
+  lastAccessedAt DateTime @default(now())
+
+  @@index([model])
+  @@index([expiresAt])
+  @@index([hitCount])
+  @@map("ai_cache")
+}
+
+// ============================================
+// AI USAGE LOGGING
+// ============================================
+
+model AiUsageLog {
+  id               String   @id @default(cuid())
+  userId           String
+  model            String
+  promptTokens     Int
+  completionTokens Int
+  totalTokens      Int
+  cost             Decimal  @db.Decimal(10, 6)
+  feature          String   // e.g., "strategy", "blog", "tool"
+  metadata         Json?
+  timestamp        DateTime @default(now())
+
+  @@index([userId])
+  @@index([model])
+  @@index([feature])
+  @@index([timestamp])
+  @@map("ai_usage_logs")
+}
+
+// ============================================
+// AUDIT LOGS (Enterprise Feature)
+// ============================================
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String   // e.g., "CREATE_STRATEGY", "EXPORT_PDF", "UPDATE_SETTINGS"
+  resource   String   // e.g., "strategy", "user", "settings"
+  resourceId String?
+  details    Json?    // Additional context
+  ipAddress  String?
+  userAgent  String?
+  timestamp  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
+
+// ============================================
+// THE OPTIMISER - AI CAMPAIGN OPTIMIZATION
+// ============================================
+
+// Note: Uses existing AdPlatform enum from line 1166
+// Added new values: META, YOUTUBE to existing enum
+
+enum OptimizerConnectionStatus {
+  CONNECTED
+  EXPIRED
+  REVOKED
+  ERROR
+}
+
+model OptimizerConnection {
+  id               String                    @id @default(cuid())
+  userId           String
+  platform         AdPlatform
+  accountId        String                    // Platform-specific account ID
+  accountName      String
+  accessToken      String                    // Encrypted
+  refreshToken     String?                   // Encrypted
+  tokenExpiresAt   DateTime?
+  status           OptimizerConnectionStatus @default(CONNECTED)
+  lastSyncAt       DateTime?
+  syncError        String?
+  permissions      String[]                  // Array of granted permissions
+  metadata         Json?                     // Platform-specific metadata
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+
+  // Relations
+  campaigns        OptimizerCampaign[]
+  syncJobs         OptimizerSyncJob[]
+
+  @@unique([userId, platform, accountId])
+  @@index([userId])
+  @@index([platform])
+  @@index([status])
+  @@map("optimizer_connections")
+}
+
+model OptimizerSyncJob {
+  id               String   @id @default(cuid())
+  connectionId     String
+  jobType          String   // CAMPAIGNS, ADSETS, ADS, METRICS
+  status           String   @default("PENDING") // PENDING, RUNNING, COMPLETED, FAILED
+  startedAt        DateTime?
+  completedAt      DateTime?
+  recordsProcessed Int      @default(0)
+  errorMessage     String?
+  createdAt        DateTime @default(now())
+
+  connection       OptimizerConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([connectionId])
+  @@index([status])
+  @@map("optimizer_sync_jobs")
+}
+
+model OptimizerCampaign {
+  id               String   @id @default(cuid())
+  connectionId     String
+  platformId       String   // External platform campaign ID
+  name             String
+  objective        String?  // AWARENESS, CONSIDERATION, CONVERSION
+  status           String   // ACTIVE, PAUSED, DELETED, ARCHIVED
+  dailyBudget      Float?
+  lifetimeBudget   Float?
+  currency         String   @default("USD")
+  startDate        DateTime?
+  endDate          DateTime?
+  bidStrategy      String?  // LOWEST_COST, TARGET_CPA, TARGET_ROAS
+  targetCpa        Float?
+  targetRoas       Float?
+  platformData     Json?    // Raw platform-specific data
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  connection       OptimizerConnection       @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  adSets           OptimizerAdSet[]
+  metrics          OptimizerCampaignMetric[]
+  suggestions      OptimizerSuggestion[]
+  actionLogs       OptimizerActionLog[]
+
+  @@unique([connectionId, platformId])
+  @@index([status])
+  @@index([objective])
+  @@map("optimizer_campaigns")
+}
+
+model OptimizerAdSet {
+  id               String   @id @default(cuid())
+  campaignId       String
+  platformId       String
+  name             String
+  status           String
+  dailyBudget      Float?
+  lifetimeBudget   Float?
+  targeting        Json?    // Audience targeting JSON
+  bidAmount        Float?
+  bidStrategy      String?
+  optimizationGoal String?
+  platformData     Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  campaign         OptimizerCampaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  ads              OptimizerAd[]
+  metrics          OptimizerAdSetMetric[]
+
+  @@unique([campaignId, platformId])
+  @@index([status])
+  @@map("optimizer_adsets")
+}
+
+model OptimizerAd {
+  id               String   @id @default(cuid())
+  adSetId          String
+  platformId       String
+  name             String
+  status           String
+  headline         String?
+  description      String?
+  callToAction     String?
+  imageUrl         String?
+  videoUrl         String?
+  thumbnailUrl     String?
+  landingUrl       String?
+  format           String?  // IMAGE, VIDEO, CAROUSEL, STORIES
+  platformData     Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  adSet            OptimizerAdSet            @relation(fields: [adSetId], references: [id], onDelete: Cascade)
+  metrics          OptimizerAdMetric[]
+  creativeAnalysis OptimizerCreativeAnalysis?
+
+  @@unique([adSetId, platformId])
+  @@index([status])
+  @@index([format])
+  @@map("optimizer_ads")
+}
+
+// Performance Metrics (Daily granularity)
+model OptimizerCampaignMetric {
+  id               String   @id @default(cuid())
+  campaignId       String
+  date             DateTime @db.Date
+  spend            Float    @default(0)
+  impressions      Int      @default(0)
+  clicks           Int      @default(0)
+  conversions      Int      @default(0)
+  revenue          Float    @default(0)
+  reach            Int      @default(0)
+  frequency        Float    @default(0)
+  ctr              Float?   // Calculated: clicks/impressions * 100
+  cpc              Float?   // Calculated: spend/clicks
+  cpm              Float?   // Calculated: spend/impressions * 1000
+  cpa              Float?   // Calculated: spend/conversions
+  roas             Float?   // Calculated: revenue/spend
+  createdAt        DateTime @default(now())
+
+  campaign         OptimizerCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, date])
+  @@index([campaignId, date])
+  @@index([date])
+  @@map("optimizer_campaign_metrics")
+}
+
+model OptimizerAdSetMetric {
+  id               String   @id @default(cuid())
+  adSetId          String
+  date             DateTime @db.Date
+  spend            Float    @default(0)
+  impressions      Int      @default(0)
+  clicks           Int      @default(0)
+  conversions      Int      @default(0)
+  revenue          Float    @default(0)
+  ctr              Float?
+  cpc              Float?
+  cpa              Float?
+  roas             Float?
+  createdAt        DateTime @default(now())
+
+  adSet            OptimizerAdSet @relation(fields: [adSetId], references: [id], onDelete: Cascade)
+
+  @@unique([adSetId, date])
+  @@index([adSetId, date])
+  @@map("optimizer_adset_metrics")
+}
+
+model OptimizerAdMetric {
+  id               String   @id @default(cuid())
+  adId             String
+  date             DateTime @db.Date
+  spend            Float    @default(0)
+  impressions      Int      @default(0)
+  clicks           Int      @default(0)
+  conversions      Int      @default(0)
+  revenue          Float    @default(0)
+  ctr              Float?
+  cpc              Float?
+  cpa              Float?
+  roas             Float?
+  createdAt        DateTime @default(now())
+
+  ad               OptimizerAd @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  @@unique([adId, date])
+  @@index([adId, date])
+  @@map("optimizer_ad_metrics")
+}
+
+// Creative Intelligence
+model OptimizerCreativeAnalysis {
+  id               String   @id @default(cuid())
+  adId             String   @unique
+  format           String   // IMAGE, VIDEO, CAROUSEL
+  textLength       Int?     // Character count
+  hasEmoji         Boolean  @default(false)
+  hasQuestion      Boolean  @default(false)
+  hasCta           Boolean  @default(false)
+  dominantColor    String?
+  sentimentScore   Float?   // -1 to 1
+  hookType         String?  // PROBLEM, BENEFIT, CURIOSITY, SOCIAL_PROOF
+  performanceScore Float?   // 0-100 AI-generated score
+  fatigueScore     Float?   // 0-100, higher = more fatigued
+  suggestions      Json?    // AI improvement suggestions
+  analyzedAt       DateTime @default(now())
+
+  ad               OptimizerAd @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  @@map("optimizer_creative_analyses")
+}
+
+// Automation Rules
+enum OptimizerRuleStatus {
+  ACTIVE
+  PAUSED
+  DRAFT
+}
+
+enum OptimizerActionType {
+  PAUSE_CAMPAIGN
+  ACTIVATE_CAMPAIGN
+  PAUSE_ADSET
+  ACTIVATE_ADSET
+  ADJUST_BUDGET
+  ADJUST_BID
+  SEND_ALERT
+  CUSTOM
+}
+
+model OptimizerRule {
+  id               String              @id @default(cuid())
+  userId           String
+  name             String
+  description      String?
+  status           OptimizerRuleStatus @default(DRAFT)
+  
+  // Conditions (JSON array)
+  // [{ metric: "cpa", operator: ">", value: 50, lookbackDays: 7 }]
+  conditions       Json
+  conditionLogic   String              @default("AND") // AND, OR
+  
+  // Action configuration
+  actionType       OptimizerActionType
+  actionParams     Json                // { budgetChangePercent: -20 } or { newBudget: 100 }
+  
+  // Scope - which entities this rule applies to
+  // { platforms: ["META"], campaignIds: [...], excludeCampaignIds: [...] }
+  scope            Json
+  
+  // Schedule
+  runFrequency     String              @default("DAILY") // HOURLY, DAILY, WEEKLY
+  timezone         String              @default("UTC")
+  lastRunAt        DateTime?
+  nextRunAt        DateTime?
+  
+  // Guardrails
+  maxActionsPerDay Int                 @default(10)
+  minSpendThreshold Float?             // Don't act on campaigns below this spend
+  requireApproval  Boolean             @default(false)
+  cooldownHours    Int                 @default(24) // Min hours between actions on same entity
+  
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  // Relations
+  executions       OptimizerRuleExecution[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("optimizer_rules")
+}
+
+model OptimizerRuleExecution {
+  id               String   @id @default(cuid())
+  ruleId           String
+  triggeredAt      DateTime @default(now())
+  
+  // What entities matched the rule conditions
+  matchedEntities  Json     // [{ type: "campaign", id: "...", name: "...", metrics: {...} }]
+  
+  // Actions planned and executed
+  actionsPlanned   Json     // [{ action: "PAUSE_CAMPAIGN", targetId: "...", params: {...} }]
+  actionsExecuted  Json?    // Same structure, populated after execution
+  
+  status           String   @default("PENDING") // PENDING, APPROVED, EXECUTED, REJECTED, FAILED
+  approvedBy       String?
+  approvedAt       DateTime?
+  executedAt       DateTime?
+  error            String?
+
+  rule             OptimizerRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([ruleId])
+  @@index([status])
+  @@index([triggeredAt])
+  @@map("optimizer_rule_executions")
+}
+
+// AI Suggestions (Action Inbox)
+model OptimizerSuggestion {
+  id               String   @id @default(cuid())
+  userId           String
+  connectionId     String?
+  campaignId       String?
+  adSetId          String?
+  adId             String?
+  
+  // Suggestion details
+  type             String   // BUDGET_INCREASE, BUDGET_DECREASE, PAUSE_LOSER, SCALE_WINNER, CREATIVE_FATIGUE, BID_ADJUST
+  category         String   // PERFORMANCE, BUDGET, CREATIVE, AUDIENCE
+  title            String
+  description      String   @db.Text
+  
+  // Impact prediction
+  impactMetric     String?  // roas, cpa, revenue
+  impactValue      Float?   // Predicted change (e.g., +0.15 for 15% improvement)
+  confidence       Float    @default(0.5) // 0-1 confidence score
+  
+  // Executable action
+  action           Json     // { type: "ADJUST_BUDGET", targetId: "...", newValue: 150 }
+  
+  // Status
+  status           String   @default("PENDING") // PENDING, APPLIED, DISMISSED, EXPIRED
+  priority         Int      @default(50) // 0-100, higher = more important
+  
+  // Lifecycle
+  expiresAt        DateTime?
+  appliedAt        DateTime?
+  appliedBy        String?
+  dismissedAt      DateTime?
+  dismissedBy      String?
+  dismissReason    String?
+  
+  createdAt        DateTime @default(now())
+
+  campaign         OptimizerCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([campaignId])
+  @@index([type])
+  @@index([priority])
+  @@index([createdAt])
+  @@map("optimizer_suggestions")
+}
+
+// Action Audit Log
+model OptimizerActionLog {
+  id               String   @id @default(cuid())
+  userId           String
+  campaignId       String?
+  adSetId          String?
+  adId             String?
+  
+  // Action details
+  actionType       String   // Same as OptimizerActionType
+  source           String   // MANUAL, RULE, SUGGESTION, AI_COPILOT
+  sourceId         String?  // Rule ID or Suggestion ID
+  
+  // Before/After state for rollback
+  previousState    Json?    // { dailyBudget: 100, status: "ACTIVE" }
+  newState         Json     // { dailyBudget: 150 }
+  
+  // Execution
+  status           String   @default("PENDING") // PENDING, SUCCESS, FAILED, ROLLED_BACK
+  platformResponse Json?    // Raw API response
+  error            String?
+  
+  // Rollback tracking
+  rolledBackAt     DateTime?
+  rolledBackBy     String?
+  
+  createdAt        DateTime @default(now())
+  executedAt       DateTime?
+
+  campaign         OptimizerCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([campaignId])
+  @@index([actionType])
+  @@index([source])
+  @@index([createdAt])
+  @@map("optimizer_action_logs")
+}
+
+// AI Copilot Conversations
+model OptimizerCopilotConversation {
+  id               String   @id @default(cuid())
+  userId           String
+  title            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  messages         OptimizerCopilotMessage[]
+
+  @@index([userId])
+  @@map("optimizer_copilot_conversations")
+}
+
+model OptimizerCopilotMessage {
+  id               String   @id @default(cuid())
+  conversationId   String
+  role             String   // USER, ASSISTANT, SYSTEM
+  content          String   @db.Text
+  
+  // For assistant messages with actions
+  suggestedActions Json?    // [{ type: "PAUSE_CAMPAIGN", targetId: "..." }]
+  executedActions  Json?    // Actions user approved and executed
+  
+  // Metadata
+  tokensUsed       Int?
+  modelUsed        String?
+  
+  createdAt        DateTime @default(now())
+
+  conversation     OptimizerCopilotConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@map("optimizer_copilot_messages")
+}
+
+// =================================================================
+// THE ANALYSER - SEO & Traffic Intelligence Platform
+// =================================================================
+
+enum AnalyserTrafficSource {
+  DIRECT
+  ORGANIC_SEARCH
+  PAID_SEARCH
+  REFERRAL
+  SOCIAL
+  EMAIL
+  DISPLAY
+  OTHER
+}
+
+enum AnalyserKeywordIntent {
+  INFORMATIONAL
+  NAVIGATIONAL
+  TRANSACTIONAL
+  COMMERCIAL
+}
+
+enum AnalyserAuditSeverity {
+  ERROR
+  WARNING
+  INFO
+}
+
+// Tracked Domain Project
+model AnalyserProject {
+  id              String   @id @default(cuid())
+  userId          String
+  domain          String
+  slug            String   @unique
+  name            String?
+  favicon         String?
+  category        String?
+  country         String   @default("US")
+  language        String   @default("en")
+  
+  // Computed metrics (refreshed periodically)
+  monthlyVisits   Int?
+  authorityScore  Float?
+  organicKeywords Int?
+  backlinksCount  Int?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  competitors     AnalyserCompetitor[]
+  keywordSets     AnalyserKeywordSet[]
+  domainMetrics   AnalyserDomainMetric[]
+  trafficMetrics  AnalyserTrafficMetric[]
+  backlinks       AnalyserBacklink[]
+  pages           AnalyserPage[]
+  auditIssues     AnalyserAuditIssue[]
+  reports         AnalyserReport[]
+
+  @@index([userId])
+  @@index([domain])
+  @@map("analyser_projects")
+}
+
+// Competitor Tracking
+model AnalyserCompetitor {
+  id              String   @id @default(cuid())
+  projectId       String
+  domain          String
+  name            String?
+  favicon         String?
+  
+  // Computed metrics
+  monthlyVisits   Int?
+  authorityScore  Float?
+  overlapScore    Float?   // Keyword overlap with main project
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         AnalyserProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, domain])
+  @@index([projectId])
+  @@map("analyser_competitors")
+}
+
+// Keyword Sets (groups of keywords to track)
+model AnalyserKeywordSet {
+  id              String   @id @default(cuid())
+  projectId       String
+  name            String
+  description     String?
+  country         String   @default("US")
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         AnalyserProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  keywords        AnalyserKeyword[]
+
+  @@index([projectId])
+  @@map("analyser_keyword_sets")
+}
+
+// Individual Keywords
+model AnalyserKeyword {
+  id              String   @id @default(cuid())
+  keywordSetId    String
+  keyword         String
+  
+  // Metrics
+  searchVolume    Int?
+  difficulty      Float?   // 0-100
+  cpc             Float?
+  intent          AnalyserKeywordIntent?
+  trend           Float?   // Month-over-month change
+  
+  // Ranking data
+  currentPosition Int?
+  previousPosition Int?
+  bestPosition    Int?
+  url             String?
+  
+  // SERP Features
+  serpFeatures    String?  // JSON array: ["featured_snippet", "people_also_ask"]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  keywordSet      AnalyserKeywordSet @relation(fields: [keywordSetId], references: [id], onDelete: Cascade)
+  positions       AnalyserKeywordPosition[]
+
+  @@index([keywordSetId])
+  @@index([keyword])
+  @@map("analyser_keywords")
+}
+
+// Keyword Position History
+model AnalyserKeywordPosition {
+  id              String   @id @default(cuid())
+  keywordId       String
+  date            DateTime
+  position        Int?
+  url             String?
+  
+  keyword         AnalyserKeyword @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@unique([keywordId, date])
+  @@index([keywordId])
+  @@index([date])
+  @@map("analyser_keyword_positions")
+}
+
+// Domain-level metrics (daily aggregates)
+model AnalyserDomainMetric {
+  id              String   @id @default(cuid())
+  projectId       String
+  date            DateTime
+  
+  // Traffic
+  visits          Int      @default(0)
+  uniqueVisitors  Int      @default(0)
+  pageViews       Int      @default(0)
+  
+  // Engagement
+  bounceRate      Float?
+  avgDuration     Float?   // seconds
+  pagesPerVisit   Float?
+  
+  // Authority
+  authorityScore  Float?
+  
+  project         AnalyserProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, date])
+  @@index([projectId])
+  @@index([date])
+  @@map("analyser_domain_metrics")
+}
+
+// Traffic Source Breakdown
+model AnalyserTrafficMetric {
+  id              String   @id @default(cuid())
+  projectId       String
+  date            DateTime
+  source          AnalyserTrafficSource
+  
+  visits          Int      @default(0)
+  share           Float?   // Percentage of total
+
+  project         AnalyserProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, date, source])
+  @@index([projectId])
+  @@index([date])
+  @@map("analyser_traffic_metrics")
+}
+
+// Backlinks
+model AnalyserBacklink {
+  id              String   @id @default(cuid())
+  projectId       String
+  
+  sourceUrl       String
+  sourceDomain    String
+  targetUrl       String
+  anchorText      String?
+  
+  // Metrics
+  authority       Float?   // Domain authority of source
+  isNofollow      Boolean  @default(false)
+  isSponsored     Boolean  @default(false)
+  isUgc           Boolean  @default(false)
+  
+  // Tracking
+  firstSeen       DateTime @default(now())
+  lastSeen        DateTime?
+  status          String   @default("ACTIVE") // ACTIVE, LOST
+
+  project         AnalyserProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([sourceDomain])
+  @@index([status])
+  @@map("analyser_backlinks")
+}
+
+// Top Pages
+model AnalyserPage {
+  id              String   @id @default(cuid())
+  projectId       String
+  url             String
+  path            String
+  title           String?
+  
+  // Traffic metrics
+  visits          Int      @default(0)
+  entrances       Int      @default(0)
+  bounceRate      Float?
+  
+  // SEO metrics
+  organicKeywords Int      @default(0)
+  backlinks       Int      @default(0)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         AnalyserProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, url])
+  @@index([projectId])
+  @@map("analyser_pages")
+}
+
+// Site Audit Issues
+model AnalyserAuditIssue {
+  id              String   @id @default(cuid())
+  projectId       String
+  
+  category        String   // meta, content, links, speed, mobile
+  type            String   // missing_title, duplicate_meta, broken_link
+  severity        AnalyserAuditSeverity
+  message         String
+  url             String?
+  details         Json?    // Additional context
+  
+  // Status
+  status          String   @default("OPEN") // OPEN, FIXED, IGNORED
+  fixedAt         DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         AnalyserProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([severity])
+  @@index([status])
+  @@map("analyser_audit_issues")
+}
+
+// Saved Reports
+model AnalyserReport {
+  id              String   @id @default(cuid())
+  projectId       String
+  userId          String
+  
+  name            String
+  type            String   // overview, keywords, competitors, audit
+  config          Json     // Report configuration
+  
+  // Scheduling
+  isScheduled     Boolean  @default(false)
+  schedule        String?  // Cron expression
+  recipients      String?  // Comma-separated emails
+  
+  lastGeneratedAt DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         AnalyserProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId])
+  @@map("analyser_reports")
+}
+
+// AI Copilot Conversations for Analyser
+model AnalyserCopilotConversation {
+  id              String   @id @default(cuid())
+  userId          String
+  projectId       String?
+  title           String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  messages        AnalyserCopilotMessage[]
+
+  @@index([userId])
+  @@index([projectId])
+  @@map("analyser_copilot_conversations")
+}
+
+model AnalyserCopilotMessage {
+  id              String   @id @default(cuid())
+  conversationId  String
+  role            String   // USER, ASSISTANT
+  content         String   @db.Text
+  
+  // For assistant messages
+  citations       Json?    // Sources/data referenced
+  suggestedActions Json?
+  
+  tokensUsed      Int?
+  
+  createdAt       DateTime @default(now())
+
+  conversation    AnalyserCopilotConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@map("analyser_copilot_messages")
+}
+
+// ============================================
+// PRODUCT SUBSCRIPTION MODELS
+// Per-product billing for Agency OS, Optimiser, Analyser, Strategiser
+// ============================================
+
+enum ProductType {
+  AGENCY_OS
+  OPTIMISER
+  ANALYSER
+  STRATEGISER
+}
+
+enum ProductPlanTier {
+  FREE
+  STARTER
+  PRO
+  AGENCY
+  ENTERPRISE
+}
+
+enum ProductSubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+  PAUSED
+}
+
+model ProductSubscription {
+  id                  String   @id @default(cuid())
+  userId              String
+  product             ProductType
+  planTier            ProductPlanTier
+  status              ProductSubscriptionStatus @default(ACTIVE)
+  
+  // Razorpay integration
+  razorpaySubscriptionId String?
+  razorpayPlanId         String?
+  razorpayCustomerId     String?
+  
+  // Billing period
+  billingInterval     String   @default("monthly") // monthly, yearly
+  currentPeriodStart  DateTime
+  currentPeriodEnd    DateTime
+  
+  // Trial info
+  trialStart          DateTime?
+  trialEnd            DateTime?
+  
+  // Cancellation
+  canceledAt          DateTime?
+  cancelReason        String?
+  
+  // Metadata
+  metadata            Json?
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([userId, product])
+  @@index([userId])
+  @@index([product])
+  @@index([status])
+  @@index([razorpaySubscriptionId])
+  @@map("product_subscriptions")
+}
+
+// ============================================
+// ADMIN ANALYTICS MODELS
+// Revenue, KPIs, and usage tracking
+// ============================================
+
+model AdminMetric {
+  id          String      @id @default(cuid())
+  date        DateTime    @default(now())
+  product     ProductType
+  metric      String      // mrr, arr, active_subs, churn, new_signups, upgrades, downgrades
+  value       Float
+  currency    String?     @default("USD")
+  metadata    Json?       // Additional context
+  
+  createdAt   DateTime    @default(now())
+
+  @@index([date])
+  @@index([product])
+  @@index([metric])
+  @@index([product, metric, date])
+  @@map("admin_metrics")
+}
+
+model AdminDailySnapshot {
+  id              String      @id @default(cuid())
+  date            DateTime    @db.Date
+  product         ProductType
+  
+  // Revenue metrics
+  mrrUsd          Float       @default(0)
+  mrrInr          Float       @default(0)
+  arrUsd          Float       @default(0)
+  arrInr          Float       @default(0)
+  
+  // Subscription counts
+  activeStarter   Int         @default(0)
+  activePro       Int         @default(0)
+  activeAgency    Int         @default(0)
+  activeEnterprise Int        @default(0)
+  totalActive     Int         @default(0)
+  
+  // Changes
+  newSignups      Int         @default(0)
+  churned         Int         @default(0)
+  upgrades        Int         @default(0)
+  downgrades      Int         @default(0)
+  
+  createdAt       DateTime    @default(now())
+
+  @@unique([date, product])
+  @@index([date])
+  @@index([product])
+  @@map("admin_daily_snapshots")
+}
+
+// ============================================
+// USER PRODUCT USAGE TRACKING
+// Feature usage analytics per user
+// ============================================
+
+model UserProductUsage {
+  id          String      @id @default(cuid())
+  userId      String
+  product     ProductType
+  feature     String      // e.g., "strategy_generated", "campaign_analyzed", "keyword_tracked"
+  count       Int         @default(1)
+  date        DateTime    @db.Date @default(now())
+  
+  // Aggregation metadata
+  metadata    Json?
+
+  @@unique([userId, product, feature, date])
+  @@index([userId])
+  @@index([product])
+  @@index([date])
+  @@index([userId, product, date])
+  @@map("user_product_usage")
+}
+
+model UserSessionEvent {
+  id          String      @id @default(cuid())
+  userId      String
+  product     ProductType?
+  event       String      // login, page_view, feature_used, etc.
+  page        String?
+  metadata    Json?
+  
+  // Session info
+  sessionId   String?
+  userAgent   String?
+  ipAddress   String?
+  
+  createdAt   DateTime    @default(now())
+
+  @@index([userId])
+  @@index([product])
+  @@index([event])
+  @@index([createdAt])
+  @@map("user_session_events")
+}
+
+// ============================================
+// THE ANALYSER - USAGE-BASED BILLING
+// ============================================
+
+// Operation types for usage tracking
+enum AnalyserOperationType {
+  KEYWORD_LOOKUP
+  SERP_SCAN
+  COMPETITOR_LOOKUP
+  BACKLINK_LOOKUP
+  GEO_ANALYSIS
+  DOMAIN_OVERVIEW
+}
+
+// Usage log for all Analyser operations
+model AnalyserUsageLog {
+  id              String                @id @default(cuid())
+  userId          String
+  operationType   AnalyserOperationType
+  unitsUsed       Int                   @default(1)
+  apiCostUsd      Float                 @default(0)
+  markupApplied   Float                 @default(0)
+  creditsCost     Int                   @default(0)
+  totalBilledUsd  Float                 @default(0)
+  inputPayload    Json?                 // What was requested
+  success         Boolean               @default(true)
+  errorMessage    String?
+  createdAt       DateTime              @default(now())
+
+  @@index([userId])
+  @@index([operationType])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@map("analyser_usage_logs")
+}
+
+// User credits balance
+model AnalyserCredits {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  creditsBalance  Int      @default(0)
+  totalPurchased  Int      @default(0)
+  totalUsed       Int      @default(0)
+  currency        String   @default("INR")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("analyser_credits")
+}
+
+// Credit purchase transactions
+model AnalyserCreditPurchase {
+  id                String   @id @default(cuid())
+  userId            String
+  creditsPurchased  Int
+  amountPaid        Float
+  currency          String   @default("INR")
+  razorpayOrderId   String?
+  razorpayPaymentId String?  @unique
+  status            String   @default("pending") // pending, completed, failed
+  createdAt         DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
+  @@map("analyser_credit_purchases")
+}
+
+// ============================================
+// THE ANALYSER - GEO (GENERATIVE ENGINE OPTIMIZATION)
+// ============================================
+
+model GeoAnalysis {
+  id                  String   @id @default(cuid())
+  userId              String
+  domain              String?
+  url                 String
+  targetTopic         String?
+  targetEngines       String[] @default(["ChatGPT", "Gemini", "AI Overviews", "Perplexity"])
+  
+  // Scores
+  geoScore            Int      @default(0) // 0-100
+  contentClarityScore Int      @default(0)
+  qaCoverageScore     Int      @default(0)
+  entityRichnessScore Int      @default(0)
+  schemaScore         Int      @default(0)
+  freshnessScore      Int      @default(0)
+  authorityScore      Int      @default(0)
+  
+  // Analysis results
+  contentSummary      String?  @db.Text
+  entities            Json?    // { brands: [], topics: [], locations: [] }
+  qaClustersCovered   Json?    // Questions the page answers
+  qaClustersGaps      Json?    // Questions the page should answer
+  structuralIssues    Json?    // Missing elements for AI readability
+  schemaSuggestions   Json?    // Recommended schema types
+  recommendations     Json?    // Action items list
+  improvedOutline     String?  @db.Text // Suggested improved structure
+  
+  // Metadata
+  pageTitle           String?
+  wordCount           Int?
+  hasSchema           Boolean  @default(false)
+  schemaTypes         String[] @default([])
+  creditsCost         Int      @default(25)
+  processingTimeMs    Int?
+  createdAt           DateTime @default(now())
+
+  @@index([userId])
+  @@index([domain])
+  @@index([geoScore])
+  @@index([createdAt])
+  @@map("geo_analyses")
+}
+
+// ============================================
+// THE ANALYSER - METERED BILLING STATEMENTS
+// ============================================
+
+model AnalyserBillingStatement {
+  id                String   @id @default(cuid())
+  userId            String
+  periodStart       DateTime
+  periodEnd         DateTime
+  
+  // Cost breakdown
+  totalApiCostUsd   Float    @default(0)
+  totalMarkupUsd    Float    @default(0)
+  totalDueUsd       Float    @default(0)
+  totalDueInr       Float    @default(0)
+  
+  // Usage counts
+  keywordLookups    Int      @default(0)
+  serpScans         Int      @default(0)
+  competitorLookups Int      @default(0)
+  backlinkLookups   Int      @default(0)
+  geoAnalyses       Int      @default(0)
+  
+  // Razorpay
+  razorpayInvoiceId String?
+  razorpayPaymentId String?
+  status            String   @default("pending") // pending, paid, failed, void
+  paidAt            DateTime?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([periodEnd])
+  @@map("analyser_billing_statements")
+}
+
+// ============================================
+// AUREON FORGE - AGENTIC DEV & AUTOMATION
+// ============================================
+
+// Forge Environments (sandbox/production per org)
+model ForgeEnvironment {
+  id        String   @id @default(cuid())
+  orgId     String   // Maps to user's organization context (userId for now)
+  name      String   // "sandbox" or "production"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  apiKeys  ForgeApiKey[]
+  webhooks ForgeWebhook[]
+
+  @@unique([orgId, name])
+  @@map("forge_environments")
+}
+
+// API Keys with secure hashing
+model ForgeApiKey {
+  id              String    @id @default(cuid())
+  orgId           String
+  environmentId   String
+  keyPrefix       String    // First 8 chars for display (e.g., "frg_live_")
+  keyHash         String    // bcrypt hash of full key
+  name            String
+  scopes          Json      @default("[]") // ["images", "videos", "flows"]
+  ipAllowlist     Json      @default("[]") // ["0.0.0.0/0"] for all
+  rateLimitPerMin Int       @default(60)
+  status          String    @default("active") // active, revoked
+  createdAt       DateTime  @default(now())
+  lastUsedAt      DateTime?
+
+  environment ForgeEnvironment @relation(fields: [environmentId], references: [id], onDelete: Cascade)
+
+  @@index([keyHash])
+  @@index([orgId])
+  @@index([environmentId])
+  @@map("forge_api_keys")
+}
+
+// Flow definitions (automation graphs)
+model ForgeFlow {
+  id             String   @id @default(cuid())
+  orgId          String
+  name           String
+  description    String?
+  definitionJson Json     // Node graph definition
+  status         String   @default("draft") // draft, published, archived
+  version        Int      @default(1)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  runs     ForgeFlowRun[]
+  webhooks ForgeWebhook[]
+  pipeline ForgePipeline?
+
+  @@index([orgId, status])
+  @@map("forge_flows")
+}
+
+// Flow run records
+model ForgeFlowRun {
+  id              String    @id @default(cuid())
+  flowId          String
+  orgId           String
+  triggeredBy     String?   // userId or "webhook" or "scheduled"
+  triggerType     String    // manual, webhook, scheduled
+  inputPayload    Json      @default("{}")
+  status          String    @default("queued") // queued, running, success, failed
+  totalSparksUsed Int       @default(0)
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  createdAt       DateTime  @default(now())
+
+  flow  ForgeFlow          @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  nodes ForgeFlowRunNode[]
+
+  @@index([flowId, status])
+  @@index([orgId, createdAt])
+  @@map("forge_flow_runs")
+}
+
+// Per-node execution logs
+model ForgeFlowRunNode {
+  id           String    @id @default(cuid())
+  flowRunId    String
+  nodeId       String    // ID within the flow graph
+  nodeType     String    // trigger, llm, image, video, brandguard, condition, http, notification
+  input        Json?
+  output       Json?
+  status       String    @default("pending") // pending, running, success, failed, skipped
+  sparksUsed   Int       @default(0)
+  errorMessage String?
+  startedAt    DateTime?
+  finishedAt   DateTime?
+
+  flowRun ForgeFlowRun @relation(fields: [flowRunId], references: [id], onDelete: Cascade)
+
+  @@index([flowRunId])
+  @@map("forge_flow_run_nodes")
+}
+
+// Pipeline templates (pre-configured flows)
+model ForgePipeline {
+  id           String   @id @default(cuid())
+  orgId        String
+  name         String
+  description  String?
+  flowId       String   @unique
+  templateType String   // brief-to-storyboard, product-feed-to-ads, custom
+  configSchema Json     @default("{}")
+  version      Int      @default(1)
+  isPublic     Boolean  @default(false) // If true, available as template for all orgs
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  flow ForgeFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+  @@index([templateType])
+  @@map("forge_pipelines")
+}
+
+// Inbound webhooks for triggering flows
+model ForgeWebhook {
+  id            String    @id @default(cuid())
+  orgId         String
+  flowId        String
+  environmentId String
+  urlSlug       String    @unique // Public URL path
+  secret        String    // HMAC secret for verification
+  status        String    @default("active") // active, paused
+  createdAt     DateTime  @default(now())
+  lastCalledAt  DateTime?
+
+  flow        ForgeFlow        @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  environment ForgeEnvironment @relation(fields: [environmentId], references: [id], onDelete: Cascade)
+
+  @@index([urlSlug])
+  @@index([flowId])
+  @@map("forge_webhooks")
+}
+
+// Forge usage tracking for Sparks attribution
+model ForgeUsageLog {
+  id            String   @id @default(cuid())
+  orgId         String
+  flowRunId     String?
+  nodeType      String   // llm, image, video, brandguard
+  provider      String   // vertexai, fal, runway, kling
+  sparksUsed    Int      @default(0)
+  inputTokens   Int?     // For LLM nodes
+  outputTokens  Int?     // For LLM nodes
+  assetUrl      String?  // GCS URL for generated assets
+  latencyMs     Int?     // Response time in milliseconds
+  createdAt     DateTime @default(now())
+
+  @@index([orgId, createdAt])
+  @@index([flowRunId])
+  @@map("forge_usage_logs")
+}
+
+// ============================================
+// MONETIZATION LAYER - BILLING & CREDITS
+// ============================================
+
+// Forge credits (Sparks) for usage-based billing
+model ForgeCredits {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  
+  // Credit Balance
+  sparksBalance   Int      @default(0)     // Current available Sparks
+  sparksIncluded  Int      @default(0)     // Monthly allocation from plan
+  totalPurchased  Int      @default(0)     // Total Sparks ever purchased
+  totalUsed       Int      @default(0)     // Total Sparks ever consumed
+  
+  // Rollover Settings
+  rolloverMonths  Int      @default(3)     // How many months credits roll over
+  rolloverSparks  Int      @default(0)     // Sparks carried from previous period
+  
+  // Plan Reference
+  forgeTier       String   @default("freelancer")  // freelancer, studio, agency, enterprise
+  
+  // Timestamps
+  lastRenewalAt   DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("forge_credits")
+}
+
+// Transaction ledger for all credit movements
+model UsageLedger {
+  id          String   @id @default(cuid())
+  userId      String
+  
+  // Transaction Details
+  product     String   // 'forge', 'analyser', 'strategiser'
+  action      String   // 'image_standard', 'video_cinema', 'llm_prompt', etc.
+  sparksUsed  Int      // Positive = deduction, Negative = credit
+  
+  // Context
+  description String?
+  referenceId String?  // flowId, strategyId, etc.
+  provider    String?  // 'fal', 'runway', 'kling', 'openai'
+  
+  // Metadata
+  metadata    Json?    // Additional context data
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([product, action])
+  @@index([createdAt])
+  @@map("usage_ledger")
+}
+
+// Raw webhook events for audit trail
+model PaymentEvent {
+  id           String   @id @default(cuid())
+  
+  // Event Identification
+  eventType    String   // 'subscription.activated', 'payment.captured', etc.
+  eventId      String   @unique  // Razorpay event ID
+  source       String   @default("razorpay")  // Payment gateway source
+  
+  // Raw Data
+  rawPayload   Json     // Complete webhook payload
+  
+  // Processing Status
+  status       String   @default("received")  // received, processing, processed, failed
+  processedAt  DateTime?
+  errorMessage String?
+  retryCount   Int      @default(0)
+  
+  // Timestamps
+  receivedAt   DateTime @default(now())
+  
+  @@index([eventType, receivedAt])
+  @@index([status])
+  @@map("payment_events")
+}
+
+// Forge Brand Kits
+model BrandKit {
+  id            String   @id @default(cuid())
+  userId        String
+  
+  // Brand Identity
+  clientName    String
+  description   String?
+  
+  // Brand Colors (JSON array)
+  colors        Json?    // ["#6366F1", "#EC4899", "#10B981"]
+  
+  // Brand Guidelines
+  toneOfVoice       Json?    // ["Professional", "Friendly", "Bold"]
+  forbiddenImagery  Json?    // ["Competitors", "Controversial topics"]
+  requiredElements  Json?    // ["Logo must be visible", "Brand colors required"]
+  
+  // LoRA Training
+  loraStatus    String   @default("none")  // none, training, ready, failed
+  loraModelUrl  String?
+  trainingImages Json?   // Array of training image URLs
+  trainedAt     DateTime?
+  
+  // Statistics
+  imageCount    Int      @default(0)
+  usageCount    Int      @default(0)
+  
+  // Metadata
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+
+  @@index([userId])
+  @@map("brand_kits")
+}
+
+// Competition Reports
+model CompetitionReport {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  industry    String
+  focusArea   String?
+  competitors String   // JSON array of strings or objects {name, url}
+
+  result      String   @db.Text // JSON stored as string containing the full AnalysisResult
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("competition_reports")
+}

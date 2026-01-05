@@ -1,0 +1,80 @@
+<svg width="1792" height="512" viewBox="0 0 1792 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Premium Gradient for Icon -->
+    <linearGradient id="iconBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#FBBF24;stop-opacity:1" />
+      <stop offset="60%" style="stop-color:#FCD34D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FDE68A;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- White Gradient for Icon Letters -->
+    <linearGradient id="iconLetters" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F9FAFB;stop-opacity:0.95" />
+    </linearGradient>
+    
+    <!-- White Gradient for Wordmark -->
+    <linearGradient id="wordmark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F3F4F6;stop-opacity:0.98" />
+    </linearGradient>
+    
+    <!-- Shadow Filters -->
+    <filter id="iconShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
+      <feOffset dx="0" dy="4" result="offsetblur"/>
+      <feFlood flood-color="#000000" flood-opacity="0.15"/>
+      <feComposite in2="offsetblur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <filter id="textShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="3" result="offsetblur"/>
+      <feFlood flood-color="#000000" flood-opacity="0.2"/>
+      <feComposite in2="offsetblur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Glossy Highlight -->
+    <radialGradient id="iconGloss" cx="30%" cy="30%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Icon Background -->
+  <rect x="32" y="32" width="448" height="448" rx="96" fill="url(#iconBg)" filter="url(#iconShadow)"/>
+  <rect x="32" y="32" width="448" height="448" rx="96" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="3"/>
+  
+  <!-- MP Monogram in Icon -->
+  <g transform="translate(256, 256)">
+    <!-- M Letter -->
+    <path d="M -120 -80 L -120 80 L -90 80 L -90 -20 L -50 60 L -20 60 L 20 -20 L 20 80 L 50 80 L 50 -80 L 10 -80 L -35 20 L -80 -80 Z" 
+          fill="url(#iconLetters)"/>
+    
+    <!-- P Letter -->
+    <path d="M 60 -80 L 60 80 L 90 80 L 90 10 L 120 10 C 140 10 150 0 150 -20 L 150 -60 C 150 -80 140 -80 120 -80 Z M 90 -50 L 120 -50 C 125 -50 120 -45 120 -40 L 120 -20 C 120 -15 125 -10 120 -10 L 90 -10 Z" 
+          fill="url(#iconLetters)"/>
+  </g>
+  
+  <!-- Glossy Highlight on Icon -->
+  <ellipse cx="140" cy="120" rx="90" ry="60" fill="url(#iconGloss)"/>
+  
+  <!-- MediaPlanPro Wordmark - Professional Typography -->
+  <g filter="url(#textShadow)">
+    <!-- Media -->
+    <text x="560" y="310" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
+          font-size="140" font-weight="700" fill="url(#wordmark)" letter-spacing="-3">
+      MediaPlanPro
+    </text>
+  </g>
+</svg>
+

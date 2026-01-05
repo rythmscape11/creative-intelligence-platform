@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F1C40F;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D4AC0D;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Outer orbit ring -->
+  <circle cx="100" cy="100" r="80" fill="none" stroke="url(#goldGradient)" stroke-width="3" opacity="0.8"/>
+  
+  <!-- Inner orbit ring -->
+  <circle cx="100" cy="100" r="55" fill="none" stroke="url(#goldGradient)" stroke-width="2" opacity="0.5"/>
+  
+  <!-- Core circle -->
+  <circle cx="100" cy="100" r="25" fill="url(#goldGradient)" filter="url(#glow)"/>
+  
+  <!-- Orbit dots -->
+  <circle cx="100" cy="20" r="6" fill="#F1C40F"/>
+  <circle cx="175" cy="80" r="5" fill="#F1C40F" opacity="0.8"/>
+  <circle cx="160" cy="160" r="4" fill="#F1C40F" opacity="0.6"/>
+  <circle cx="40" cy="140" r="5" fill="#F1C40F" opacity="0.7"/>
+</svg>

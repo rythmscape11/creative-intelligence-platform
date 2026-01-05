@@ -1,0 +1,18 @@
+{
+  "installCommand": "npm install --include=dev",
+  "buildCommand": "npx prisma@5 generate && next build --webpack",
+  "framework": "nextjs",
+  "regions": [
+    "iad1"
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/lead-chaser",
+      "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/daily-blog",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}

@@ -1,0 +1,268 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { Target, Plus, TrendingUp, TrendingDown, Search, ExternalLink } from 'lucide-react';
+
+const mockCompetitors = [
+  {
+    id: '1',
+    domain: 'competitor1.com',
+    keywords: 8,
+    avgPosition: 12.4,
+    change: 2.1,
+    lastChecked: '2025-10-09',
+  },
+];
+
+const mockKeywords = [
+  { keyword: 'marketing strategy', yourRank: 5, competitorRank: 3, volume: 2400, difficulty: 45 },
+  { keyword: 'content marketing', yourRank: 8, competitorRank: 2, volume: 1900, difficulty: 52 },
+  { keyword: 'digital marketing', yourRank: 12, competitorRank: 7, volume: 3200, difficulty: 68 },
+];
+
+export default function CompetitorsPage() {
+  const [newCompetitor, setNewCompetitor] = useState('');
+  const [selectedCompetitor, setSelectedCompetitor] = useState<string | null>(null);
+
+  const handleAddCompetitor = (e: React.FormEvent) => {
+    e.preventDefault();
+    // TODO: API call to add competitor
+    setNewCompetitor('');
+  };
+
+  return (
+    <div className="min-h-screen bg-bg-primary py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8 bg-bg-secondary border border-border-primary rounded-lg p-8 animate-fade-in-up">
+          <div className="flex items-center mb-4">
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center mr-4 bg-[#F59E0B]">
+              <Target className="h-6 w-6 text-black" />
+            </div>
+            <h1 className="text-4xl font-bold text-text-primary">
+              Competitor Scanner
+            </h1>
+          </div>
+          <p className="text-lg text-text-secondary">
+            Track competitor rankings and discover keyword opportunities
+          </p>
+        </div>
+
+        {/* Add Competitor Form */}
+        <div className="bg-bg-secondary border border-border-primary rounded-lg p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4 text-text-primary">
+            Add Competitor
+          </h2>
+
+          <form onSubmit={handleAddCompetitor} className="flex gap-3">
+            <input
+              type="text"
+              value={newCompetitor}
+              onChange={(e) => setNewCompetitor(e.target.value)}
+              placeholder="competitor-domain.com"
+              className="flex-1 px-4 py-3 rounded-lg border border-border-primary bg-bg-tertiary text-text-primary placeholder:text-text-tertiary focus:border-[#F59E0B] focus:ring-2 focus:ring-[#F59E0B] focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={!newCompetitor}
+              className="bg-[#F59E0B] text-black hover:bg-[#D97706] rounded-lg px-4 py-2 flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+            >
+              <Plus className="h-5 w-5" />
+              Add Competitor
+            </button>
+          </form>
+
+          {/* Usage indicator */}
+          <div className="mt-4 p-4 bg-bg-tertiary border border-border-primary rounded-lg">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium text-text-primary">
+                Competitors Tracked
+              </span>
+              <span className="text-sm font-medium text-text-primary">
+                {mockCompetitors.length} / 1
+              </span>
+            </div>
+            <div className="w-full bg-bg-primary rounded-full h-2">
+              <div className="h-2 rounded-full transition-all duration-300 bg-[#F59E0B]"
+                style={{
+                  width: `${(mockCompetitors.length / 1) * 100}%`
+                }}>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Competitors List */}
+          <div className="lg:col-span-1">
+            <div className="bg-bg-secondary border border-border-primary rounded-lg p-6">
+              <h2 className="text-xl font-semibold mb-4 text-text-primary">
+                Your Competitors
+              </h2>
+
+              {mockCompetitors.length === 0 ? (
+                <div className="text-center py-8">
+                  <Target className="h-12 w-12 mx-auto mb-3 text-text-tertiary" />
+                  <p className="text-sm text-text-secondary">
+                    No competitors tracked yet
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {mockCompetitors.map((comp) => (
+                    <button
+                      key={comp.id}
+                      onClick={() => setSelectedCompetitor(comp.id)}
+                      className={`w-full text-left p-4 rounded-lg transition-all border ${
+                        selectedCompetitor === comp.id
+                          ? 'bg-[#F59E0B]/10 border-[#F59E0B]'
+                          : 'bg-bg-tertiary border-border-primary hover:border-border-hover'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="font-medium text-text-primary">
+                          {comp.domain}
+                        </div>
+                        <ExternalLink className="h-4 w-4 text-[#F59E0B]" />
+                      </div>
+                      <div className="flex justify-between text-xs text-text-secondary">
+                        <span>{comp.keywords} keywords</span>
+                        <span className={comp.change > 0 ? 'text-green-400' : 'text-red-400'}>
+                          {comp.change > 0 ? '+' : ''}{comp.change}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Keyword Comparison */}
+          <div className="lg:col-span-2">
+            <div className="bg-bg-secondary border border-border-primary rounded-lg p-6">
+              <h2 className="text-xl font-semibold mb-6 text-text-primary">
+                Keyword Comparison
+              </h2>
+
+              {selectedCompetitor ? (
+                <div className="space-y-4">
+                  {mockKeywords.map((kw, index) => (
+                    <div key={index} className="bg-bg-tertiary border border-border-primary rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center mb-2">
+                            <Search className="h-4 w-4 mr-2 text-[#F59E0B]" />
+                            <span className="font-semibold text-text-primary">
+                              {kw.keyword}
+                            </span>
+                          </div>
+                          <div className="flex gap-4 text-sm">
+                            <div>
+                              <span className="text-text-tertiary">
+                                Volume:
+                              </span>
+                              <span className="ml-1 font-medium text-text-primary">
+                                {kw.volume.toLocaleString()}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-text-tertiary">
+                                Difficulty:
+                              </span>
+                              <span className={`ml-1 font-medium ${
+                                kw.difficulty < 40 ? 'text-green-400' :
+                                kw.difficulty < 60 ? 'text-yellow-400' :
+                                'text-red-400'
+                              }`}>
+                                {kw.difficulty}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 pt-3 border-t border-border-primary">
+                        <div className="text-center">
+                          <div className="text-xs mb-1 text-text-tertiary">
+                            Your Rank
+                          </div>
+                          <div className="text-2xl font-bold flex items-center justify-center text-[#F59E0B]">
+                            #{kw.yourRank}
+                            {kw.yourRank > kw.competitorRank ? (
+                              <TrendingDown className="h-4 w-4 ml-1 text-red-400" />
+                            ) : (
+                              <TrendingUp className="h-4 w-4 ml-1 text-green-400" />
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-xs mb-1 text-text-tertiary">
+                            Competitor Rank
+                          </div>
+                          <div className="text-2xl font-bold text-[#F59E0B]">
+                            #{kw.competitorRank}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-bg-elevated rounded-lg p-12 text-center">
+                  <Target className="h-16 w-16 mx-auto mb-4 text-text-tertiary" />
+                  <p className="text-text-secondary">
+                    Select a competitor to view keyword comparison
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Opportunities */}
+            {selectedCompetitor && (
+              <div className="bg-bg-secondary border border-border-primary rounded-lg p-6 mt-6">
+                <h2 className="text-xl font-semibold mb-4 text-text-primary">
+                  Keyword Opportunities
+                </h2>
+                <div className="bg-bg-tertiary border border-border-primary rounded-lg p-4">
+                  <div className="flex items-start">
+                    <TrendingUp className="h-5 w-5 mr-3 flex-shrink-0 mt-0.5 text-[#F59E0B]" />
+                    <div>
+                      <div className="font-semibold mb-1 text-text-primary">
+                        3 Quick Win Opportunities
+                      </div>
+                      <p className="text-sm text-text-secondary">
+                        Keywords where you rank 11-20 and competitor ranks in top 10.
+                        Small improvements could yield big gains.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Free Tier Notice */}
+        <div className="mt-8 bg-bg-tertiary border border-border-primary rounded-lg p-6">
+          <div className="flex items-start">
+            <Target className="h-5 w-5 mr-3 flex-shrink-0 mt-0.5 text-[#F59E0B]" />
+            <div>
+              <h4 className="font-semibold mb-1 text-text-primary">
+                Free Tier Limits
+              </h4>
+              <p className="text-sm text-text-secondary">
+                Track 1 competitor with up to 10 keywords.
+                <Link href="/pricing" className="ml-1 underline text-[#F59E0B] hover:text-[#D97706]">
+                  Upgrade to track more competitors
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+

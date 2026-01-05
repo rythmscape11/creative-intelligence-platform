@@ -1,0 +1,514 @@
+import { Metadata } from 'next';
+import Image from 'next/image';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { Header } from '@/components/layout/header';
+import { Footer } from '@/components/layout/footer';
+import { prisma } from '@/lib/prisma';
+import { Button } from '@/components/ui/button';
+import { SocialShare } from '@/components/blog/social-share';
+import { CommentsSection } from '@/components/blog/comments-section';
+import { NewsletterSignup } from '@/components/blog/newsletter-signup';
+import { Calendar, Clock, Tag, User, ArrowLeft, Share } from 'lucide-react';
+import { getReadingTime } from '@/lib/reading-time';
+
+interface BlogPostPageProps {
+  params: {
+    slug: string;
+  };
+}
+
+async function getBlogPost(slug: string) {
+  try {
+    const post = await prisma.blogPost.findUnique({
+      where: {
+        slug,
+        status: 'PUBLISHED',
+      },
+      include: {
+        author: {
+          select: {
+            name: true,
+            email: true,
+            avatar: true,
+          },
+        },
+        category: {
+          select: {
+            name: true,
+            slug: true,
+          },
+        },
+        tags: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+    });
+    return post;
+  } catch (error) {
+    console.error('Error fetching blog post:', error);
+    return null;
+  }
+}
+
+async function getRelatedPosts(categoryId: string, currentPostId: string) {
+  try {
+    const posts = await prisma.blogPost.findMany({
+      where: {
+        categoryId,
+        status: 'PUBLISHED',
+        id: {
+          not: currentPostId,
+        },
+      },
+      include: {
+        author: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      take: 3,
+      orderBy: {
+        publishedAt: 'desc',
+      },
+    });
+    return posts;
+  } catch (error) {
+    console.error('Error fetching related posts:', error);
+    return [];
+  }
+}
+
+export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
+  const post = await getBlogPost(params.slug);
+
+  if (!post) {
+    return {
+      title: 'Post Not Found | MediaPlanPro Blog',
+    };
+  }
+
+  return {
+    title: post.seoTitle || `${post.title} | MediaPlanPro Blog`,
+    description: post.seoDescription || post.excerpt || undefined,
+    keywords: post.tags?.map(tag => tag.name).join(', '),
+    openGraph: {
+      title: post.title,
+      description: post.seoDescription || post.excerpt || undefined,
+      images: post.featuredImage ? [post.featuredImage] : undefined,
+      type: 'article',
+      publishedTime: post.publishedAt?.toISOString(),
+      authors: post.author?.name ? [post.author.name] : undefined,
+    },
+  };
+}
+
+export default async function BlogPostPage({ params }: BlogPostPageProps) {
+  const post = await getBlogPost(params.slug);
+
+  if (!post) {
+    notFound();
+  }
+
+  const relatedPosts = post.categoryId ? await getRelatedPosts(post.categoryId, post.id) : [];
+  const readingTime = getReadingTime(post.content);
+
+  return (
+    <div className="min-h-screen bg-gradient-mesh">
+      <Header />
+
+      <main>
+        {/* Breadcrumb Navigation */}
+        <nav className="glass-card mx-4 mt-4 rounded-lg">
+          <div className="container py-4">
+            <ol
+              className="flex items-center gap-2 text-sm"
+              style={{ color: 'var(--color-neutral-charcoal)', opacity: 0.7 }}
+            >
+              <li>
+                <Link
+                  href="/"
+                  className="transition-colors"
+                  style={{ color: 'var(--color-primary-blue)' }}
+                >
+                  Home
+                </Link>
+              </li>
+              <li>/</li>
+              <li>
+                <Link
+                  href="/blog"
+                  className="transition-colors"
+                  style={{ color: 'var(--color-primary-blue)' }}
+                >
+                  Blog
+                </Link>
+              </li>
+              {post.category && (
+                <>
+                  <li>/</li>
+                  <li>
+                    <Link
+                      href={`/blog/category/${post.category.slug}`}
+                      className="transition-colors"
+                      style={{ color: 'var(--color-primary-blue)' }}
+                    >
+                      {post.category.name}
+                    </Link>
+                  </li>
+                </>
+              )}
+              <li>/</li>
+              <li
+                className="font-medium truncate max-w-xs"
+                style={{ color: 'var(--color-neutral-charcoal)' }}
+              >
+                {post.title}
+              </li>
+            </ol>
+          </div>
+        </nav>
+
+        {/* Article Header - Premium Editorial Style */}
+        <article className="container max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="glass-card p-8 md:p-12 animate-fade-in-up">
+              {/* Category Badge */}
+              {post.category && (
+                <Link
+                  href={`/blog/category/${post.category.slug}`}
+                  className="inline-block px-4 py-1.5 text-white text-xs font-bold uppercase tracking-wider rounded transition-colors mb-6"
+                  style={{ backgroundColor: 'var(--color-primary-blue)' }}
+                >
+                  {post.category.name}
+                </Link>
+              )}
+
+              {/* Headline - Large and Prominent */}
+              <h1
+                className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight"
+                style={{
+                  fontFamily: 'var(--font-family-display)',
+                  color: 'var(--color-neutral-charcoal)'
+                }}
+              >
+                {post.title}
+              </h1>
+
+              {/* Standfirst/Excerpt - Compelling Summary */}
+              {post.excerpt && (
+                <p
+                  className="text-xl md:text-2xl mb-8 leading-relaxed font-light border-l-4 pl-6"
+                  style={{
+                    color: 'var(--color-neutral-charcoal)',
+                    opacity: 0.8,
+                    borderColor: 'var(--color-primary-blue)'
+                  }}
+                >
+                  {post.excerpt}
+                </p>
+              )}
+
+              {/* Author Byline and Meta - Professional Layout */}
+              <div
+                className="flex flex-wrap items-center justify-between gap-6 py-6 border-y mb-8"
+                style={{ borderColor: 'var(--color-neutral-charcoal)', opacity: 0.2 }}
+              >
+                <div className="flex items-center gap-4">
+                  {post.author && (
+                    <div className="flex items-center gap-3">
+                      {post.author?.avatar ? (
+                        <div className="relative w-12 h-12">
+                          <Image
+                            src={post.author.avatar}
+                            alt={post.author.name}
+                            fill
+                            className="rounded-full object-cover"
+                            sizes="48px"
+                          />
+                        </div>
+                      ) : (
+                        <div
+                          className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
+                          style={{ background: 'linear-gradient(135deg, var(--color-primary-blue), var(--color-primary-lavender))' }}
+                        >
+                          {post.author.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <p
+                          className="font-semibold"
+                          style={{ color: 'var(--color-neutral-charcoal)' }}
+                        >
+                          {post.author.name}
+                        </p>
+                        <p
+                          className="text-sm"
+                          style={{ color: 'var(--color-neutral-charcoal)', opacity: 0.7 }}
+                        >
+                          Contributing Writer
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div
+                  className="flex flex-wrap items-center gap-4 text-sm"
+                  style={{ color: 'var(--color-neutral-charcoal)', opacity: 0.7 }}
+                >
+                  {post.publishedAt && (
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="h-4 w-4" />
+                      <time dateTime={post.publishedAt.toISOString()}>
+                        {new Date(post.publishedAt).toLocaleDateString('en-US', {
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </time>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="h-4 w-4" />
+                    <span>{readingTime}</span>
+                  </div>
+                  <SocialShare
+                    url={`/blog/${post.slug}`}
+                    title={post.title}
+                    description={post.excerpt || ''}
+                  />
+                </div>
+              </div>
+
+            {/* Featured Image - Full Width with Caption */}
+            {post.featuredImage && (
+              <figure className="mb-12 -mx-4 sm:-mx-6 lg:-mx-8">
+                <div className="relative aspect-[16/9] bg-gray-100 overflow-hidden">
+                  <Image
+                    src={post.featuredImage}
+                    alt={post.title}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 100vw, 768px"
+                  />
+                </div>
+                <figcaption className="mt-3 px-4 sm:px-6 lg:px-8 text-sm text-gray-600 italic">
+                  {post.title}
+                </figcaption>
+              </figure>
+            )}
+
+            {/* Article Content - Premium Typography */}
+            <div className="article-content">
+              <div
+                className="prose prose-lg prose-gray max-w-none
+                  prose-headings:font-bold prose-headings:text-gray-900
+                  prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-6 prose-h2:leading-tight
+                  prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-4
+                  prose-p:text-gray-800 prose-p:text-lg prose-p:leading-relaxed prose-p:mb-6
+                  prose-a:text-primary-600 prose-a:no-underline hover:prose-a:underline
+                  prose-strong:text-gray-900 prose-strong:font-semibold
+                  prose-blockquote:border-l-4 prose-blockquote:border-primary-600 prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:text-gray-700
+                  prose-ul:my-6 prose-ol:my-6
+                  prose-li:text-gray-800 prose-li:text-lg prose-li:leading-relaxed
+                  prose-img:rounded-lg prose-img:shadow-md"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
+            </div>
+
+              {/* Article Footer - Tags and Author Bio */}
+              <div
+                className="mt-16 pt-8 border-t-2"
+                style={{ borderColor: 'var(--color-neutral-charcoal)', opacity: 0.2 }}
+              >
+                {/* Tags */}
+                {post.tags && post.tags.length > 0 && (
+                  <div className="mb-10">
+                    <h3
+                      className="text-sm font-bold uppercase tracking-wider mb-4"
+                      style={{ color: 'var(--color-neutral-charcoal)' }}
+                    >
+                      Topics
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {post.tags.map((tag, idx) => (
+                        <Link
+                          key={tag.slug}
+                          href={`/blog/tag/${tag.slug}`}
+                          className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md transition-all duration-300 hover:scale-105 ${
+                            idx % 3 === 0 ? 'card-pastel-lavender' : idx % 3 === 1 ? 'card-pastel-mint' : 'card-pastel-peach'
+                          }`}
+                        >
+                          <Tag className="h-3.5 w-3.5" />
+                          {tag.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Author Bio Section */}
+                {post.author && (
+                  <div className="card-pastel-blue rounded-lg p-8 mb-10">
+                    <h3
+                      className="text-sm font-bold uppercase tracking-wider mb-4"
+                      style={{ color: 'var(--color-neutral-charcoal)' }}
+                    >
+                      About the Author
+                    </h3>
+                    <div className="flex items-start gap-4">
+                      {post.author?.avatar ? (
+                        <div className="relative w-16 h-16 flex-shrink-0">
+                          <Image
+                            src={post.author.avatar}
+                            alt={post.author.name}
+                            fill
+                            className="rounded-full object-cover"
+                            sizes="64px"
+                          />
+                        </div>
+                      ) : (
+                        <div
+                          className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-2xl flex-shrink-0"
+                          style={{ background: 'linear-gradient(135deg, var(--color-primary-blue), var(--color-primary-lavender))' }}
+                        >
+                          {post.author.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <h4
+                          className="font-bold text-lg mb-2"
+                          style={{ color: 'var(--color-neutral-charcoal)' }}
+                        >
+                          {post.author.name}
+                        </h4>
+                        <p
+                          className="leading-relaxed"
+                          style={{ color: 'var(--color-neutral-charcoal)', opacity: 0.8 }}
+                        >
+                          {post.author.name} is a contributing writer at MediaPlanPro, specializing in marketing strategy,
+                          digital transformation, and data-driven decision making. With years of experience in the industry,
+                          they bring practical insights and actionable advice to help businesses grow.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Related Articles - Premium Card Design */}
+              {relatedPosts.length > 0 && (
+                <div
+                  className="border-t-2 pt-12 mt-12"
+                  style={{ borderColor: 'var(--color-neutral-charcoal)', opacity: 0.2 }}
+                >
+                  <h2
+                    className="text-3xl font-bold mb-8"
+                    style={{
+                      fontFamily: 'var(--font-family-display)',
+                      color: 'var(--color-neutral-charcoal)'
+                    }}
+                  >
+                    More from {post.category?.name || 'this category'}
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {relatedPosts.map((relatedPost, idx) => (
+                      <article
+                        key={relatedPost.id}
+                        className={`glass-card p-4 group transition-all duration-300 hover:scale-105 hover:shadow-xl ${
+                          idx === 0 ? 'stagger-1' : idx === 1 ? 'stagger-2' : 'stagger-3'
+                        }`}
+                      >
+                        <Link href={`/blog/${relatedPost.slug}`}>
+                          {relatedPost.featuredImage && (
+                            <div className="relative aspect-video rounded-lg overflow-hidden mb-4">
+                              <Image
+                                src={relatedPost.featuredImage}
+                                alt={relatedPost.title}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                sizes="(max-width: 1024px) 100vw, 33vw"
+                              />
+                            </div>
+                          )}
+                          <h3
+                            className="font-bold text-lg mb-2 transition-colors line-clamp-2 leading-tight"
+                            style={{ color: 'var(--color-neutral-charcoal)' }}
+                          >
+                            {relatedPost.title}
+                          </h3>
+                          {relatedPost.excerpt && (
+                            <p
+                              className="text-sm line-clamp-3 mb-3 leading-relaxed"
+                              style={{ color: 'var(--color-neutral-charcoal)', opacity: 0.7 }}
+                            >
+                              {relatedPost.excerpt}
+                            </p>
+                          )}
+                          {relatedPost.author && (
+                            <p
+                              className="text-xs font-medium"
+                              style={{ color: 'var(--color-neutral-charcoal)', opacity: 0.6 }}
+                            >
+                              By {relatedPost.author.name}
+                            </p>
+                          )}
+                        </Link>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Comments Section */}
+              <div className="mt-16">
+                <CommentsSection postId={post.id} postSlug={post.slug} />
+              </div>
+
+              {/* Newsletter CTA - Premium Design */}
+              <div className="mt-16">
+                <NewsletterSignup variant="inline" />
+              </div>
+
+              {/* Strategy Builder CTA */}
+              <div className="mt-12 glass-card p-10 text-center bg-gradient-primary">
+                <h3
+                  className="text-2xl font-bold mb-4"
+                  style={{
+                    fontFamily: 'var(--font-family-display)',
+                    color: 'var(--color-neutral-charcoal)'
+                  }}
+                >
+                  Ready to Build Your Marketing Strategy?
+                </h3>
+                <p
+                  className="text-lg mb-6 max-w-2xl mx-auto"
+                  style={{ color: 'var(--color-neutral-charcoal)', opacity: 0.8 }}
+                >
+                  Use our AI-powered Strategy Builder to create professional marketing strategies in minutes.
+                  Trusted by leading brands worldwide.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Link href="/dashboard/strategies/create" className="btn btn-primary">
+                    Start Building Strategy
+                  </Link>
+                  <Link href="/blog" className="btn btn-secondary">
+                    Browse More Articles
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </main>
+
+      <Footer />
+    </div>
+  );
+}
+

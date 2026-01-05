@@ -1,0 +1,72 @@
+/* 
+ * Aureon One - Agency OS Custom Styles
+ * Override Plane's default styling
+ */
+
+:root {
+  /* Primary Colors - Emerald */
+  --color-primary-100: #d1fae5;
+  --color-primary-200: #a7f3d0;
+  --color-primary-300: #6ee7b7;
+  --color-primary-400: #34d399;
+  --color-primary-500: #10b981;
+  --color-primary-600: #059669;
+  --color-primary-700: #047857;
+  --color-primary-800: #065f46;
+  --color-primary-900: #064e3b;
+  
+  /* Background Colors - Zinc */
+  --color-background-100: #09090b;
+  --color-background-90: #18181b;
+  --color-background-80: #27272a;
+  
+  /* Sidebar */
+  --color-sidebar-background: #18181b;
+  --color-sidebar-text: #fafafa;
+  --color-sidebar-text-muted: #a1a1aa;
+  
+  /* Accents */
+  --color-accent: #10b981;
+  --color-accent-hover: #059669;
+}
+
+/* Dark theme overrides */
+[data-theme="dark"] {
+  --color-bg-base: #09090b;
+  --color-bg-surface: #18181b;
+  --color-border-base: #27272a;
+}
+
+/* Logo customization */
+.logo-plane {
+  display: none !important;
+}
+
+.logo-custom::before {
+  content: "Agency OS";
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--color-primary-500);
+}
+
+/* Button styling */
+.btn-primary {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  border: none !important;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #059669, #047857) !important;
+}
+
+/* Sidebar styling */
+.sidebar {
+  background: #18181b !important;
+  border-right: 1px solid #27272a !important;
+}
+
+/* Hide Plane branding */
+.plane-branding,
+.powered-by-plane {
+  display: none !important;
+}

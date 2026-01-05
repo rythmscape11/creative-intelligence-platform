@@ -1,0 +1,33 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B"/>
+      <stop offset="50%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#FCD34D"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F3F4F6"/>
+    </linearGradient>
+    <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- Rounded background -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#brandGradient)"/>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="rgba(255,255,255,0.22)"/>
+
+  <!-- MP monogram (GPT‑5 designed) -->
+  <g transform="translate(0.5,0.5)" filter="url(#softShadow)">
+    <!-- M: geometric, upward points for growth -->
+    <path d="M14 46 V18 L22 32 L30 18 V46 H26 V30 L22 36 L18 30 V46 Z" fill="url(#ink)"/>
+
+    <!-- P: bar + rounded bowl (growth node) -->
+    <path d="M36 18 V46 H40 V34 H44 C50 34 54 30 54 26 C54 22 50 18 44 18 H36 Z M40 22 H44 C47 22 50 24.5 50 26 C50 27.5 47 30 44 30 H40 V22 Z" fill="url(#ink)"/>
+  </g>
+
+  <!-- subtle highlight -->
+  <ellipse cx="18" cy="18" rx="9" ry="7" fill="rgba(255,255,255,0.16)"/>
+</svg>
+

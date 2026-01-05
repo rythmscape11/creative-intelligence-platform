@@ -1,0 +1,133 @@
+import { Metadata } from 'next';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { redirect } from 'next/navigation';
+import { prisma } from '@/lib/prisma';
+import { AnalyticsDashboard } from '@/components/admin/analytics-dashboard';
+
+export const metadata: Metadata = {
+  title: 'Analytics Dashboard | Admin',
+  description: 'View analytics and insights',
+};
+
+export default async function AdminAnalyticsPage() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.email) {
+    redirect('/auth/signin');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+  });
+
+  if (!user || user.role !== 'ADMIN') {
+    redirect('/dashboard');
+  }
+
+  // Get date ranges
+  const now = new Date();
+  const today = new Date(now.setHours(0, 0, 0, 0));
+  const thisWeek = new Date(now.setDate(now.getDate() - 7));
+  const thisMonth = new Date(now.setDate(1));
+
+  // Get analytics data
+  const analytics = await prisma.analytics.findMany({
+    where: {
+      timestamp: {
+        gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+      },
+    },
+    orderBy: { timestamp: 'desc' },
+  });
+
+  // Get blog posts (views would need to be calculated from analytics)
+  const blogPostsRaw = await prisma.blogPost.findMany({
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+    },
+    where: { status: 'PUBLISHED' },
+    orderBy: { createdAt: 'desc' },
+    take: 10,
+  });
+
+  // Add views field (set to 0 for now, would need to calculate from analytics)
+  const blogPosts = blogPostsRaw.map(post => ({
+    ...post,
+    views: 0,
+  }));
+
+  // Get strategy stats
+  const strategyStats = {
+    total: await prisma.marketingStrategy.count(),
+    today: await prisma.marketingStrategy.count({
+      where: { createdAt: { gte: today } },
+    }),
+    thisWeek: await prisma.marketingStrategy.count({
+      where: { createdAt: { gte: thisWeek } },
+    }),
+    thisMonth: await prisma.marketingStrategy.count({
+      where: { createdAt: { gte: thisMonth } },
+    }),
+  };
+
+  // Get user stats
+  const userStats = {
+    total: await prisma.user.count(),
+    today: await prisma.user.count({
+      where: { createdAt: { gte: today } },
+    }),
+    thisWeek: await prisma.user.count({
+      where: { createdAt: { gte: thisWeek } },
+    }),
+    thisMonth: await prisma.user.count({
+      where: { createdAt: { gte: thisMonth } },
+    }),
+  };
+
+  // Get blog stats
+  const blogStats = {
+    total: await prisma.blogPost.count(),
+    published: await prisma.blogPost.count({ where: { status: 'PUBLISHED' } }),
+    views: 0, // Views would need to be calculated from analytics events
+  };
+
+  // Calculate traffic sources from analytics (referrer field)
+  const trafficSources = analytics.reduce((acc, item) => {
+    const source = item.referrer || 'Direct';
+    acc[source] = (acc[source] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Calculate page views by date
+  const pageViewsByDate = analytics.reduce((acc, item) => {
+    const date = new Date(item.timestamp).toLocaleDateString();
+    acc[date] = (acc[date] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-4xl font-bold mb-2 text-text-primary">
+          Analytics Dashboard
+        </h1>
+        <p className="text-text-secondary">
+          Monitor traffic, engagement, and performance
+        </p>
+      </div>
+
+      <AnalyticsDashboard
+        strategyStats={strategyStats}
+        userStats={userStats}
+        blogStats={blogStats}
+        topContent={blogPosts}
+        trafficSources={trafficSources}
+        pageViewsByDate={pageViewsByDate}
+      />
+    </div>
+  );
+}
+

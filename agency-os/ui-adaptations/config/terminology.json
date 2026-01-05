@@ -1,0 +1,49 @@
+{
+    "version": "1.0.0",
+    "mappings": {
+        "workspace": {
+            "display": "Client Account",
+            "plural": "Client Accounts",
+            "description": "A client workspace containing all their campaigns"
+        },
+        "project": {
+            "display": "Campaign",
+            "plural": "Campaigns",
+            "description": "A marketing campaign for a client"
+        },
+        "issue": {
+            "display": "Deliverable",
+            "plural": "Deliverables",
+            "description": "A task or deliverable within a campaign"
+        },
+        "cycle": {
+            "display": "Phase",
+            "plural": "Phases",
+            "description": "A time-boxed phase of a campaign"
+        },
+        "module": {
+            "display": "Workstream",
+            "plural": "Workstreams",
+            "description": "A grouping of related deliverables"
+        },
+        "state": {
+            "display": "Status",
+            "plural": "Statuses",
+            "description": "The current status of a deliverable"
+        },
+        "label": {
+            "display": "Tag",
+            "plural": "Tags",
+            "description": "A tag for categorizing deliverables"
+        }
+    },
+    "hidden_features": [
+        "pages",
+        "drive"
+    ],
+    "ui_customizations": {
+        "primary_color": "#6366f1",
+        "logo": "/agency-os-logo.svg",
+        "app_name": "Agency OS"
+    }
+}

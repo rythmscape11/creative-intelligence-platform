@@ -1,0 +1,231 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { Sparkles, FileText, Twitter, Linkedin, Instagram, Youtube, Copy } from 'lucide-react';
+
+const platforms = [
+  { id: 'twitter', name: 'Twitter/X Thread', icon: Twitter, color: 'var(--color-primary-yellow)' },
+  { id: 'linkedin', name: 'LinkedIn Post', icon: Linkedin, color: 'var(--color-primary-yellow)' },
+  { id: 'instagram', name: 'Instagram Caption', icon: Instagram, color: 'var(--color-accent-orange)' },
+  { id: 'youtube', name: 'YouTube Description', icon: Youtube, color: 'var(--color-accent-orange)' },
+];
+
+export default function RepurposerPage() {
+  const [sourceContent, setSourceContent] = useState('');
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedContent, setGeneratedContent] = useState<Record<string, string>>({});
+
+  const togglePlatform = (platformId: string) => {
+    setSelectedPlatforms(prev =>
+      prev.includes(platformId)
+        ? prev.filter(id => id !== platformId)
+        : [...prev, platformId]
+    );
+  };
+
+  const handleGenerate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsGenerating(true);
+    
+    // TODO: API call to generate content
+    setTimeout(() => {
+      const mock: Record<string, string> = {};
+      selectedPlatforms.forEach(platform => {
+        mock[platform] = `Generated ${platform} content from your source material...`;
+      });
+      setGeneratedContent(mock);
+      setIsGenerating(false);
+    }, 2000);
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    // TODO: Show toast notification
+  };
+
+  return (
+    <div className="min-h-screen bg-bg-primary py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8 bg-bg-secondary border border-border-primary rounded-lg p-8 animate-fade-in-up">
+          <div className="flex items-center mb-4">
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center mr-4 bg-[#F59E0B]">
+              <Sparkles className="h-6 w-6 text-black" />
+            </div>
+            <h1 className="text-4xl font-bold text-text-primary">
+              AI Content Repurposer
+            </h1>
+          </div>
+          <p className="text-lg text-text-secondary">
+            Transform one piece of content into multiple platform-optimized posts
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Input Section */}
+          <div className="space-y-6">
+            <div className="bg-bg-secondary border border-border-primary rounded-lg p-6">
+              <h2 className="text-xl font-semibold mb-4 text-text-primary">
+                Source Content
+              </h2>
+
+              <form onSubmit={handleGenerate} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-text-primary">
+                    Paste your content
+                  </label>
+                  <textarea
+                    value={sourceContent}
+                    onChange={(e) => setSourceContent(e.target.value)}
+                    placeholder="Paste your blog post, article, or any long-form content here..."
+                    rows={12}
+                    required
+                    className="w-full px-4 py-3 rounded-lg border border-[#F59E0B] bg-bg-tertiary text-text-primary placeholder:text-text-tertiary focus:ring-2 focus:ring-[#F59E0B] focus:border-transparent"
+                  />
+                  <p className="text-xs mt-2 text-text-tertiary">
+                    {sourceContent.length} characters
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-3 text-text-primary">
+                    Select Platforms
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {platforms.map((platform) => {
+                      const Icon = platform.icon;
+                      const isSelected = selectedPlatforms.includes(platform.id);
+                      
+                      return (
+                        <button
+                          key={platform.id}
+                          type="button"
+                          onClick={() => togglePlatform(platform.id)}
+                          className={`p-4 rounded-lg border-2 transition-all ${
+                            isSelected
+                              ? 'border-[#F59E0B] bg-[#F59E0B]/10'
+                              : 'border-border-primary hover:border-border-hover'
+                          }`}
+                        >
+                          <Icon className="h-5 w-5 mb-2 text-[#F59E0B]" />
+                          <div className="text-sm font-medium text-text-primary">
+                            {platform.name}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isGenerating || !sourceContent || selectedPlatforms.length === 0}
+                  className="bg-[#F59E0B] text-black hover:bg-[#D97706] rounded-lg px-4 py-2 flex items-center gap-2 transition-all font-semibold w-full disabled:opacity-50 disabled:cursor-not-allowed justify-center"
+                >
+                  {isGenerating ? (
+                    <>
+                      <div className="animate-spin h-5 w-5 mr-2 border-2 border-black border-t-transparent rounded-full"></div>
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-5 w-5 mr-2" />
+                      Generate Content
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Usage indicator */}
+              <div className="mt-6 p-4 bg-bg-tertiary border border-border-primary rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium text-text-primary">
+                    Monthly Usage
+                  </span>
+                  <span className="text-sm font-medium text-text-primary">
+                    12 / 50 generations
+                  </span>
+                </div>
+                <div className="w-full bg-bg-primary rounded-full h-2">
+                  <div className="h-2 rounded-full transition-all duration-300 bg-[#F59E0B]">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Output Section */}
+          <div className="space-y-6">
+            <div className="bg-bg-secondary border border-border-primary rounded-lg p-6">
+              <h2 className="text-xl font-semibold mb-4 text-text-primary">
+                Generated Content
+              </h2>
+
+              {Object.keys(generatedContent).length === 0 ? (
+                <div className="text-center py-12">
+                  <FileText className="h-16 w-16 mx-auto mb-4 text-text-tertiary" />
+                  <p className="text-text-secondary">
+                    Generated content will appear here
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {Object.entries(generatedContent).map(([platformId, content]) => {
+                    const platform = platforms.find(p => p.id === platformId);
+                    if (!platform) return null;
+
+                    const Icon = platform.icon;
+
+                    return (
+                      <div key={platformId} className="bg-bg-tertiary border border-border-primary rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center">
+                            <Icon className="h-5 w-5 mr-2 text-[#F59E0B]" />
+                            <span className="font-semibold text-text-primary">
+                              {platform.name}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => copyToClipboard(content)}
+                            className="bg-bg-elevated border border-border-primary text-text-primary hover:bg-bg-hover rounded-lg text-sm py-1 px-3 flex items-center gap-1 transition-colors"
+                          >
+                            <Copy className="h-4 w-4" />
+                            Copy
+                          </button>
+                        </div>
+                        <div className="bg-bg-primary border border-border-primary rounded p-3 text-sm text-text-secondary">
+                          {content}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Free Tier Notice */}
+        <div className="mt-8 bg-bg-tertiary border border-border-primary rounded-lg p-6">
+          <div className="flex items-start">
+            <Sparkles className="h-5 w-5 mr-3 flex-shrink-0 mt-0.5 text-[#F59E0B]" />
+            <div>
+              <h4 className="font-semibold mb-1 text-text-primary">
+                Free Tier Limits
+              </h4>
+              <p className="text-sm text-text-secondary">
+                Generate up to 50 content variations per month.
+                <Link href="/pricing" className="ml-1 underline text-[#F59E0B] hover:text-[#D97706]">
+                  Upgrade for unlimited generations
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+

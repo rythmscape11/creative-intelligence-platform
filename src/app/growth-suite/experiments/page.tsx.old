@@ -1,0 +1,248 @@
+import Link from 'next/link';
+import { FlaskConical, Plus, Play, Pause, CheckCircle, Clock, TrendingUp } from 'lucide-react';
+
+export const metadata = {
+  title: 'Experiments - Growth Suite - MediaPlanPro',
+  description: 'Create and manage A/B tests with real-time statistics',
+};
+
+// This will be replaced with actual data from the database
+const mockExperiments = [
+  {
+    id: '1',
+    name: 'Homepage Hero CTA Test',
+    description: 'Testing "Get Started" vs "Try Free" button text',
+    status: 'running',
+    variants: [
+      { id: 'control', name: 'Control', traffic: 50 },
+      { id: 'variant-a', name: 'Variant A', traffic: 50 },
+    ],
+    stats: {
+      views: 1247,
+      conversions: 89,
+      conversionRate: 7.1,
+      uplift: 12.5,
+    },
+    startDate: '2025-10-01',
+  },
+];
+
+export default function ExperimentsPage() {
+  const runningCount = mockExperiments.filter(e => e.status === 'running').length;
+  const draftCount = mockExperiments.filter(e => e.status === 'draft').length;
+  const completedCount = mockExperiments.filter(e => e.status === 'completed').length;
+
+  return (
+    <div className="min-h-screen bg-bg-primary py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8 bg-bg-secondary border border-border-primary rounded-lg p-8 animate-fade-in-up">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center mr-4 bg-[#F59E0B]">
+                  <FlaskConical className="h-6 w-6 text-black" />
+                </div>
+                <h1 className="text-4xl font-bold text-text-primary">
+                  Experiments
+                </h1>
+              </div>
+              <p className="text-lg text-text-secondary">
+                Create and manage A/B tests with real-time statistics
+              </p>
+            </div>
+            <Link href="/growth-suite/experiments/create" className="bg-[#F59E0B] text-black hover:bg-[#D97706] rounded-lg px-4 py-2 flex items-center gap-2 transition-all font-semibold">
+              <Plus className="h-5 w-5" />
+              New Experiment
+            </Link>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-bg-tertiary border border-border-primary rounded-lg p-6 stagger-1 hover:border-border-hover transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-text-secondary">
+                Running
+              </span>
+              <Play className="h-5 w-5 text-[#F59E0B]" />
+            </div>
+            <div className="text-3xl font-bold text-text-primary">
+              {runningCount}
+            </div>
+          </div>
+
+          <div className="bg-bg-tertiary border border-border-primary rounded-lg p-6 stagger-2 hover:border-border-hover transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-text-secondary">
+                Draft
+              </span>
+              <Clock className="h-5 w-5 text-[#F59E0B]" />
+            </div>
+            <div className="text-3xl font-bold text-text-primary">
+              {draftCount}
+            </div>
+          </div>
+
+          <div className="bg-bg-tertiary border border-border-primary rounded-lg p-6 stagger-3 hover:border-border-hover transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-text-secondary">
+                Completed
+              </span>
+              <CheckCircle className="h-5 w-5 text-[#F59E0B]" />
+            </div>
+            <div className="text-3xl font-bold text-text-primary">
+              {completedCount}
+            </div>
+          </div>
+        </div>
+
+        {/* Experiments List */}
+        <div className="space-y-6">
+          {mockExperiments.length === 0 ? (
+            <div className="bg-bg-secondary border border-border-primary rounded-lg p-12 text-center">
+              <FlaskConical className="h-16 w-16 mx-auto mb-4"
+ />
+              <h3 className="text-xl font-semibold mb-2"
+>
+                No experiments yet
+              </h3>
+              <p className="mb-6"
+>
+                Create your first A/B test to start optimizing your conversion rates
+              </p>
+              <Link href="/growth-suite/experiments/create" className="bg-[#F59E0B] text-black hover:bg-[#D97706] rounded-lg px-4 py-2 flex items-center gap-2 transition-all font-semibold">
+                <Plus className="h-5 w-5 mr-2" />
+                Create Experiment
+              </Link>
+            </div>
+          ) : (
+            mockExperiments.map((experiment, index) => (
+              <Link
+                key={experiment.id}
+                href={`/growth-suite/experiments/${experiment.id}`}
+                className={`bg-bg-secondary border border-border-primary rounded-lg p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl block ${
+                  index < 3 ? `stagger-${index + 1}` : ''
+                }`}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center mb-2">
+                      <h3 className="text-xl font-semibold mr-3"
+>
+                        {experiment.name}
+                      </h3>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        experiment.status === 'running' 
+                          ? 'bg-green-100 text-green-800'
+                          : experiment.status === 'draft'
+                          ? 'bg-gray-100 text-gray-800'
+                          : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {experiment.status === 'running' ? (
+                          <span className="flex items-center">
+                            <Play className="h-3 w-3 mr-1" />
+                            Running
+                          </span>
+                        ) : experiment.status === 'draft' ? (
+                          <span className="flex items-center">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Draft
+                          </span>
+                        ) : (
+                          <span className="flex items-center">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Completed
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <p className="mb-4"
+>
+                      {experiment.description}
+                    </p>
+                    <div className="flex flex-wrap gap-4 text-sm">
+                      <div>
+                        <span>
+                          Variants:
+                        </span>
+                        <span className="ml-2 font-medium"
+>
+                          {experiment.variants.length}
+                        </span>
+                      </div>
+                      <div>
+                        <span>
+                          Views:
+                        </span>
+                        <span className="ml-2 font-medium"
+>
+                          {experiment.stats.views.toLocaleString()}
+                        </span>
+                      </div>
+                      <div>
+                        <span>
+                          Conversions:
+                        </span>
+                        <span className="ml-2 font-medium"
+>
+                          {experiment.stats.conversions}
+                        </span>
+                      </div>
+                      <div>
+                        <span>
+                          CVR:
+                        </span>
+                        <span className="ml-2 font-medium"
+>
+                          {experiment.stats.conversionRate}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  {experiment.stats.uplift !== 0 && (
+                    <div className="ml-6 text-right">
+                      <div className="flex items-center justify-end mb-1">
+                        <TrendingUp className="h-4 w-4 mr-1" />
+                        <span className="text-2xl font-bold">
+                          {experiment.stats.uplift > 0 ? '+' : ''}{experiment.stats.uplift}%
+                        </span>
+                      </div>
+                      <span className="text-xs"
+>
+                        Uplift
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
+
+        {/* Free Tier Notice */}
+        <div className="mt-8 bg-bg-tertiary border border-border-primary rounded-lg p-6">
+          <div className="flex items-start">
+            <FlaskConical className="h-5 w-5 mr-3 flex-shrink-0 mt-0.5"
+ />
+            <div>
+              <h4 className="font-semibold mb-1"
+>
+                Free Tier Limits
+              </h4>
+              <p className="text-sm"
+>
+                You can run 1 active experiment with up to 10,000 pageviews per month. 
+                <Link href="/pricing" className="ml-1 underline"
+>
+                  Upgrade for more
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+

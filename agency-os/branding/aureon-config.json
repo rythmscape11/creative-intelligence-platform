@@ -1,0 +1,33 @@
+{
+    "branding": {
+        "appName": "Agency OS",
+        "companyName": "Aureon One",
+        "tagline": "Stable Operations for Modern Agencies",
+        "domain": "app.aureonone.in"
+    },
+    "colors": {
+        "primary": "#10b981",
+        "primaryHover": "#059669",
+        "secondary": "#18181b",
+        "background": "#09090b",
+        "surface": "#18181b",
+        "border": "#27272a",
+        "text": "#fafafa",
+        "textMuted": "#a1a1aa"
+    },
+    "terminology": {
+        "workspace": "Client",
+        "project": "Campaign",
+        "issue": "Deliverable",
+        "cycle": "Phase",
+        "module": "Workstream",
+        "page": "Document",
+        "view": "Dashboard"
+    },
+    "features": {
+        "hideGitHub": true,
+        "hideSlack": false,
+        "hideAnalytics": false,
+        "hideBilling": true
+    }
+}

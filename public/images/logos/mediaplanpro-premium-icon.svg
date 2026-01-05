@@ -1,0 +1,76 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Premium Multi-Layer Gradient -->
+    <linearGradient id="premiumBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#FBBF24;stop-opacity:1" />
+      <stop offset="60%" style="stop-color:#FCD34D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FDE68A;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- White Gradient for Letters -->
+    <linearGradient id="letterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F9FAFB;stop-opacity:0.95" />
+    </linearGradient>
+    
+    <!-- Subtle Inner Shadow -->
+    <filter id="innerShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+      <feOffset dx="0" dy="4" result="offsetblur"/>
+      <feFlood flood-color="#000000" flood-opacity="0.12"/>
+      <feComposite in2="offsetblur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Letter Shadow for Depth -->
+    <filter id="letterShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+      <feOffset dx="0" dy="6" result="offsetblur"/>
+      <feFlood flood-color="#000000" flood-opacity="0.25"/>
+      <feComposite in2="offsetblur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Glossy Highlight -->
+    <radialGradient id="gloss" cx="30%" cy="30%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background with Premium Gradient and Rounded Corners -->
+  <rect x="64" y="64" width="896" height="896" rx="192" fill="url(#premiumBg)" filter="url(#innerShadow)"/>
+  
+  <!-- Subtle Border for Premium Feel -->
+  <rect x="64" y="64" width="896" height="896" rx="192" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="4"/>
+  
+  <!-- MP Monogram - Bold, Modern, Geometric -->
+  <g transform="translate(512, 512)" filter="url(#letterShadow)">
+    <!-- M Letter - Modern Geometric Design -->
+    <path d="M -240 -160 L -240 160 L -180 160 L -180 -40 L -100 120 L -40 120 L 40 -40 L 40 160 L 100 160 L 100 -160 L 20 -160 L -70 40 L -160 -160 Z" 
+          fill="url(#letterGradient)" 
+          stroke="none"/>
+    
+    <!-- P Letter - Modern Geometric Design with Rounded Bowl -->
+    <path d="M 120 -160 L 120 160 L 180 160 L 180 20 L 240 20 C 280 20 300 0 300 -40 L 300 -120 C 300 -160 280 -160 240 -160 Z M 180 -100 L 240 -100 C 250 -100 240 -90 240 -80 L 240 -40 C 240 -30 250 -20 240 -20 L 180 -20 Z" 
+          fill="url(#letterGradient)" 
+          stroke="none"/>
+  </g>
+  
+  <!-- Glossy Highlight Effect (Top-left) -->
+  <ellipse cx="280" cy="240" rx="180" ry="120" fill="url(#gloss)"/>
+  
+  <!-- Subtle Decorative Elements for Premium Look -->
+  <circle cx="840" cy="184" r="24" fill="rgba(255,255,255,0.12)"/>
+  <circle cx="184" cy="840" r="24" fill="rgba(255,255,255,0.12)"/>
+  <circle cx="880" cy="880" r="16" fill="rgba(255,255,255,0.08)"/>
+  <circle cx="144" cy="144" r="16" fill="rgba(255,255,255,0.08)"/>
+</svg>
+

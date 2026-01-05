@@ -1,0 +1,27 @@
+# Agency OS Extension Requirements
+
+# Django (for models/ORM)
+Django>=4.2,<5.0
+djangorestframework>=3.14
+dj-database-url>=2.1
+
+# FastAPI (for REST API)
+fastapi>=0.104
+uvicorn[standard]>=0.24
+pydantic>=2.5
+
+# Database
+psycopg2-binary>=2.9
+asyncpg>=0.29
+
+# Async HTTP client
+httpx>=0.25
+
+# Testing
+pytest>=7.4
+pytest-django>=4.5
+pytest-asyncio>=0.21
+httpx  # Also used for testing
+
+# Type hints
+typing-extensions>=4.8
