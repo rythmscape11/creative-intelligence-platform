@@ -1,5 +1,25 @@
 import { z } from 'zod';
 
+// Re-export basic strategy schemas from validation module
+export {
+    strategyInputSchema,
+    businessInfoSchema,
+    audienceAndBudgetSchema,
+    objectivesAndTimeframeSchema,
+    challengesAndContextSchema,
+    brandAndChannelsSchema,
+    industryOptions,
+    timeframeOptions,
+    commonObjectives,
+    strategyFormSteps,
+    type StrategyInput,
+    type BusinessInfo,
+    type AudienceAndBudget,
+    type ObjectivesAndTimeframe,
+    type ChallengesAndContext,
+    type BrandAndChannels,
+} from '@/lib/validations/strategy';
+
 // --- Enums & Constants ---
 
 export const BusinessTypeSchema = z.enum(['B2B', 'B2C', 'B2B2C', 'D2C', 'MARKETPLACE', 'SAAS', 'ECOMMERCE', 'SERVICE']);

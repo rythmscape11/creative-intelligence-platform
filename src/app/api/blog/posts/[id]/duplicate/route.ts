@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import { generateSlug } from '@/lib/validations/blog';
+import { generateSlug } from '@/dtos/blog.dto';
 import { logger } from '@/lib/services/logger-service';
 
 interface RouteParams {

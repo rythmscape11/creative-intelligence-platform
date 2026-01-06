@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import { publishBlogPostSchema } from '@/lib/validations/blog';
+import { publishBlogPostSchema } from '@/dtos/blog.dto';
 import { logger } from '@/lib/services/logger-service';
 import { z } from 'zod';
 

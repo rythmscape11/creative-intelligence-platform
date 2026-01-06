@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import { strategyInputSchema } from '@/lib/validations/strategy';
+import { strategyInputSchema } from '@/dtos/strategy.dto';
 
 interface RouteParams {
   params: Promise<{

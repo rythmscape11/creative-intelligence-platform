@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import { bulkBlogPostActionSchema } from '@/lib/validations/blog';
+import { bulkBlogPostActionSchema } from '@/dtos/blog.dto';
 import { logger } from '@/lib/services/logger-service';
 import { z } from 'zod';
 
@@ -11,7 +11,7 @@ import { z } from 'zod';
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
-    
+
     if (!userId) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       });
 
       const unauthorizedPosts = posts.filter(post => post.authorId !== userId);
-      
+
       if (unauthorizedPosts.length > 0) {
         return NextResponse.json(
           { success: false, error: 'You can only perform bulk actions on your own posts' },
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
             { status: 403 }
           );
         }
-        
+
         result = await prisma.blogPost.deleteMany({
           where: { id: { in: postIds } },
         });
@@ -144,14 +144,14 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     logger.error('Error performing bulk action on blog posts', error as Error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { success: false, error: 'Validation failed', details: error.errors },
         { status: 400 }
       );
     }
-    
+
     return NextResponse.json(
       { success: false, error: 'Failed to perform bulk action' },
       { status: 500 }

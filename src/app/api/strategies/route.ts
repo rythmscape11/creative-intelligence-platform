@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import { strategyInputSchema } from '@/lib/validations/strategy';
+import { strategyInputSchema } from '@/dtos/strategy.dto';
 import { StrategyProcessor } from '@/lib/services/strategy-processor';
 import { z } from 'zod';
 import { strategyCreationRateLimiter } from '@/lib/rate-limiters';
