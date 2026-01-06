@@ -4,6 +4,10 @@ import { requireAuth, requireAdmin } from '../middleware/auth';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 
+// Note: We use inline schema here because the server has a separate tsconfig.
+// Consider consolidating to a shared types package in the future.
+const UserRoleSchema = z.enum(['USER', 'EDITOR', 'ADMIN']);
+
 const router = Router();
 const prisma = new PrismaClient();
 
@@ -46,8 +50,8 @@ router.get('/stats', asyncHandler(async (req: any, res: any) => {
 
     // Strategy statistics
     const [totalStrategies, strategiesThisMonth, exportedStrategies] = await Promise.all([
-      prisma.strategy.count(),
-      prisma.strategy.count({
+      prisma.marketingStrategy.count(),
+      prisma.marketingStrategy.count({
         where: {
           createdAt: {
             gte: startOfMonth,
@@ -65,7 +69,7 @@ router.get('/stats', asyncHandler(async (req: any, res: any) => {
     const uptime = process.uptime();
     const uptimeHours = Math.floor(uptime / 3600);
     const uptimeDays = Math.floor(uptimeHours / 24);
-    const uptimeString = uptimeDays > 0 
+    const uptimeString = uptimeDays > 0
       ? `${uptimeDays}d ${uptimeHours % 24}h`
       : `${uptimeHours}h ${Math.floor((uptime % 3600) / 60)}m`;
 
@@ -141,10 +145,10 @@ router.get('/activity', asyncHandler(async (req: any, res: any) => {
     });
 
     // Get recent strategies
-    const recentStrategies = await prisma.strategy.findMany({
+    const recentStrategies = await prisma.marketingStrategy.findMany({
       select: {
         id: true,
-        businessName: true,
+        name: true,
         createdAt: true,
         user: {
           select: { name: true },
@@ -193,16 +197,16 @@ router.get('/activity', asyncHandler(async (req: any, res: any) => {
       ...recentStrategies.map(strategy => ({
         id: `strategy-${strategy.id}`,
         type: 'strategy_created' as const,
-        description: `Strategy created for ${strategy.businessName}`,
+        description: `Strategy created: ${strategy.name || 'Unnamed'}`,
         timestamp: strategy.createdAt.toISOString(),
         user: strategy.user.name,
       })),
-      ...recentExports.map(exportJob => ({
+      ...recentExports.map((exportJob: any) => ({
         id: `export-${exportJob.id}`,
         type: 'export_generated' as const,
-        description: `${exportJob.format} export ${exportJob.status.toLowerCase()} for ${exportJob.strategy.businessName}`,
+        description: `${exportJob.format} export ${exportJob.status.toLowerCase()} for ${exportJob.strategy?.name || 'Unknown'}`,
         timestamp: exportJob.createdAt.toISOString(),
-        user: exportJob.strategy.user.name,
+        user: exportJob.strategy?.user?.name || 'Unknown',
       })),
     ];
 
@@ -301,14 +305,14 @@ router.get('/users', asyncHandler(async (req: any, res: any) => {
   }
 }));
 
-// Update user role
+// Update user role - uses imported UserRoleSchema from DTOs
 const updateUserRoleSchema = z.object({
-  role: z.enum(['USER', 'EDITOR', 'ADMIN']),
+  role: UserRoleSchema,
 });
 
 router.patch('/users/:id/role', asyncHandler(async (req: any, res: any) => {
   const { id } = req.params;
-  
+
   try {
     const { role } = updateUserRoleSchema.parse(req.body);
 
