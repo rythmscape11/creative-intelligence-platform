@@ -94,3 +94,19 @@ jspm_packages/
 /playwright-report/
 /playwright/.cache/
 .env.razorpay
+
+# Debug artifacts
+cookies.txt
+csrf.json
+*.tar.gz
+email_preview.html
+
+# Storage and logs
+storage/
+logs/
+
+# Prisma backups
+*.backup*
+
+# Agency OS local env
+agency-os/.env.local
