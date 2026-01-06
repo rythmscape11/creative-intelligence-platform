@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
+import { GetSubscriptionResponseDTO } from '@/dtos/subscription.dto';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
       where: { userId: userId },
     });
 
-    return NextResponse.json({
+    const response: GetSubscriptionResponseDTO = {
       subscription: subscription || {
         plan: 'FREE',
         status: 'ACTIVE',
@@ -28,7 +29,9 @@ export async function GET(request: NextRequest) {
         cancelAtPeriodEnd: false,
         trialEnd: null,
       },
-    });
+    };
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Get subscription error:', error);
     return NextResponse.json(
@@ -37,4 +40,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
 

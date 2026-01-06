@@ -4,12 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { registrationRateLimiter, getClientIP } from '@/lib/rate-limiters';
 import { logger } from '@/lib/services/logger-service';
-
-const registerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-});
+import { RegisterRequestSchema } from '@/dtos/auth.dto';
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,9 +28,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    
-    // Validate input
-    const validatedData = registerSchema.parse(body);
+
+    // Validate input using DTO
+    const validatedData = RegisterRequestSchema.parse(body);
     const { name, email, password } = validatedData;
 
     // Check if user already exists

@@ -6,7 +6,7 @@ import {
   blogPostQuerySchema,
   generateSlug,
   validateSlugUniqueness
-} from '@/lib/validations/blog';
+} from '@/dtos/blog.dto';
 import { logger } from '@/lib/services/logger-service';
 import { z } from 'zod';
 

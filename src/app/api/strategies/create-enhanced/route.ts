@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import { enhancedStrategyInputSchema } from '@/lib/validations/enhanced-strategy';
+import { EnhancedStrategyInputSchema } from '@/dtos/strategy.dto';
 import { EnhancedStrategyGenerator } from '@/lib/services/enhanced-strategy-generator';
 import { StrategyMetricsLogger } from '@/lib/services/strategy-metrics-logger';
 
@@ -25,11 +25,11 @@ export async function POST(request: NextRequest) {
 
   try {
     // Check authentication
-    const { userId } = await auth();
+    const { userId: authUserId } = await auth();
+    userId = authUserId || undefined;
 
     console.log('=== Enhanced Strategy Creation Debug ===');
     console.log('User ID:', userId);
-    console.log('User ID type:', typeof userId);
 
     if (!userId) {
       console.error('No user ID found');
@@ -56,8 +56,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log('User lookup result:', user);
-
     if (!user) {
       console.warn('User not found in database:', userId);
       return NextResponse.json(
@@ -77,7 +75,7 @@ export async function POST(request: NextRequest) {
 
     let validatedInput;
     try {
-      validatedInput = enhancedStrategyInputSchema.parse(body);
+      validatedInput = EnhancedStrategyInputSchema.parse(body); // Using DTO schema
       timings.validation = Date.now() - validationStart;
     } catch (error: any) {
       console.error('Validation error:', error);
@@ -118,6 +116,7 @@ export async function POST(request: NextRequest) {
     // Generate comprehensive strategy
     console.log('Generating enhanced strategy for user:', userId);
     const generationStart = Date.now();
+    // Note: The generator internally uses the old type alias, but DTO type is structurally compatible
     const strategyOutput = await EnhancedStrategyGenerator.generateStrategy(validatedInput, userId, isPaid);
     timings.generation = Date.now() - generationStart;
 

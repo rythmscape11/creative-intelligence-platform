@@ -4,67 +4,16 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import {
+    AgencyDashboardDataDTO,
+    ClientPerformanceMetricsDTO,
+    // ClientPerformanceMetricsSchema, // Use schema for validation if needed
+    // AgencyDashboardDataSchema 
+} from '@/dtos/agency.dto';
 
-export interface ClientPerformanceMetrics {
-    clientId: string;
-    clientName: string;
-    period: 'week' | 'month' | 'quarter' | 'year';
-
-    // Strategy metrics
-    strategies: {
-        total: number;
-        created: number;
-        exported: number;
-        completionRate: number;
-    };
-
-    // Engagement metrics
-    engagement: {
-        logins: number;
-        activeHours: number;
-        lastActive: Date | null;
-        toolsUsed: number;
-    };
-
-    // Revenue metrics
-    revenue: {
-        invoiced: number;
-        collected: number;
-        outstanding: number;
-        mrr: number;
-    };
-
-    // Health indicators
-    health: {
-        score: number; // 0-100
-        status: 'healthy' | 'at-risk' | 'churning';
-        riskFactors: string[];
-        recommendations: string[];
-    };
-}
-
-export interface AgencyDashboardData {
-    summary: {
-        totalClients: number;
-        activeClients: number;
-        totalStrategies: number;
-        totalRevenue: number;
-        mrr: number;
-        churnRate: number;
-    };
-    clients: ClientPerformanceMetrics[];
-    trends: {
-        clientGrowth: Array<{ date: string; count: number }>;
-        revenueGrowth: Array<{ date: string; amount: number }>;
-        strategyUsage: Array<{ date: string; count: number }>;
-    };
-    alerts: Array<{
-        type: 'warning' | 'danger' | 'info';
-        message: string;
-        clientId?: string;
-        action?: string;
-    }>;
-}
+// Re-export for backward compatibility if needed, or update consumers
+export type ClientPerformanceMetrics = ClientPerformanceMetricsDTO;
+export type AgencyDashboardData = AgencyDashboardDataDTO;
 
 /**
  * Calculate client health score
@@ -144,8 +93,8 @@ export function calculateClientHealth(metrics: Partial<ClientPerformanceMetrics>
 /**
  * Generate performance alerts
  */
-export function generateAlerts(clients: ClientPerformanceMetrics[]): AgencyDashboardData['alerts'] {
-    const alerts: AgencyDashboardData['alerts'] = [];
+export function generateAlerts(clients: ClientPerformanceMetricsDTO[]): AgencyDashboardDataDTO['alerts'] {
+    const alerts: AgencyDashboardDataDTO['alerts'] = [];
 
     for (const client of clients) {
         if (client.health.status === 'churning') {
@@ -184,23 +133,25 @@ export function generateAlerts(clients: ClientPerformanceMetrics[]): AgencyDashb
 /**
  * Get agency dashboard data
  */
-export async function getAgencyDashboard(agencyId: string): Promise<AgencyDashboardData> {
+export async function getAgencyDashboard(agencyId: string): Promise<AgencyDashboardDataDTO> {
     // This would query actual data from the database
     // Returning structure for now
-    const clients = await prisma.clientWorkspace.findMany({
-        where: { agencyId },
+    // Query actual data from the database
+    // Using AgencyClient model instead of non-existent ClientWorkspace
+    const clients = await prisma.agencyClient.findMany({
+        where: { agencyId: agencyId || undefined }, // Handle optional agencyId
         include: {
-            _count: {
-                select: { strategies: true }
+            projects: {
+                select: { id: true }
             }
         }
     });
 
-    // Build mock metrics for each client
-    const clientMetrics: ClientPerformanceMetrics[] = clients.map(client => {
+    // Build mock metrics for each client (since we don't have real metrics tables yet)
+    const clientMetrics: ClientPerformanceMetricsDTO[] = clients.map(client => {
         const health = calculateClientHealth({
             engagement: { logins: 5, activeHours: 10, lastActive: new Date(), toolsUsed: 3 },
-            strategies: { total: client._count?.strategies || 0, created: 0, exported: 0, completionRate: 0 },
+            strategies: { total: client.projects.length || 0, created: 0, exported: 0, completionRate: 0 },
             revenue: { invoiced: 0, collected: 0, outstanding: 0, mrr: 0 }
         });
 
@@ -209,7 +160,7 @@ export async function getAgencyDashboard(agencyId: string): Promise<AgencyDashbo
             clientName: client.name,
             period: 'month' as const,
             strategies: {
-                total: client._count?.strategies || 0,
+                total: client.projects.length || 0,
                 created: 0,
                 exported: 0,
                 completionRate: 0
@@ -233,8 +184,8 @@ export async function getAgencyDashboard(agencyId: string): Promise<AgencyDashbo
     return {
         summary: {
             totalClients: clients.length,
-            activeClients: clients.filter(c => c.isActive).length,
-            totalStrategies: clients.reduce((sum, c) => sum + (c._count?.strategies || 0), 0),
+            activeClients: clients.filter(c => c.status === 'ACTIVE').length,
+            totalStrategies: clients.reduce((sum, c) => sum + (c.projects.length || 0), 0),
             totalRevenue: 0,
             mrr: 0,
             churnRate: 0

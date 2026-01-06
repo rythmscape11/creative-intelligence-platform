@@ -184,15 +184,26 @@ export async function POST(req: Request) {
     }
 
     if (eventType === 'user.updated') {
-        const { id, email_addresses, first_name, last_name, public_metadata } = evt.data;
+        const { id, email_addresses, first_name, last_name, public_metadata, image_url } = evt.data;
 
         try {
+            // Prepare update payload
+            const updatePayload = {
+                name: `${first_name || ''} ${last_name || ''}`.trim() || email_addresses[0].email_address,
+                avatar: image_url || undefined,
+            };
+
+            // Validate payload matches our core user update rules (e.g. non-empty names if required by config)
+            // Note: We don't strictly enforce schema on webhook ingestion to avoid breaking sync if external data is messy,
+            // but we use the type to ensure we are mapping to valid fields.
+
             await prisma.user.update({
                 where: { id },
                 data: {
                     email: email_addresses[0].email_address,
-                    name: `${first_name || ''} ${last_name || ''}`.trim() || email_addresses[0].email_address,
+                    name: updatePayload.name,
                     role: (public_metadata?.role as UserRole) || 'USER',
+                    avatar: updatePayload.avatar
                 },
             });
 

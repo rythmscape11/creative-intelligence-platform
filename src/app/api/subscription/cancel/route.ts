@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
+import { CancelSubscriptionResponseDTO } from '@/dtos/subscription.dto';
 
 // Only initialize Stripe if API key is available
 const stripe = process.env.STRIPE_SECRET_KEY
@@ -55,10 +56,12 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
+    const response: CancelSubscriptionResponseDTO = {
       success: true,
       message: 'Subscription will be canceled at the end of the billing period',
-    });
+    };
+
+    return NextResponse.json(response);
   } catch (error: any) {
     console.error('Cancel subscription error:', error);
     return NextResponse.json(
@@ -67,4 +70,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
 
