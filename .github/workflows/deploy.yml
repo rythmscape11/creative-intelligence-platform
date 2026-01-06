@@ -22,12 +22,35 @@ jobs:
           script: |
             set -e
             
-            echo "📁 Navigating to project directory..."
-            cd /opt/aureonone
+            PROJECT_DIR="/opt/aureonone"
+            REPO_URL="https://github.com/rythmscape11/creative-intelligence-platform.git"
+            BRANCH="release-v3"
             
-            echo "⬇️ Pulling latest changes from GitHub..."
-            git fetch origin
-            git reset --hard origin/release-v3
+            echo "📁 Setting up project directory..."
+            
+            # Create directory if it doesn't exist
+            if [ ! -d "$PROJECT_DIR" ]; then
+              echo "📥 Directory doesn't exist. Creating and cloning..."
+              mkdir -p /opt
+              cd /opt
+              git clone -b $BRANCH $REPO_URL aureonone
+              cd aureonone
+            else
+              cd $PROJECT_DIR
+              
+              # Check if it's a git repository
+              if [ ! -d ".git" ]; then
+                echo "⚠️ Directory exists but not a git repo. Re-cloning..."
+                cd /opt
+                rm -rf aureonone
+                git clone -b $BRANCH $REPO_URL aureonone
+                cd aureonone
+              else
+                echo "⬇️ Pulling latest changes from GitHub..."
+                git fetch origin
+                git reset --hard origin/$BRANCH
+              fi
+            fi
             
             echo "📦 Installing dependencies..."
             npm ci --prefer-offline --no-audit
@@ -36,13 +59,19 @@ jobs:
             npx prisma generate
             
             echo "🔄 Running database migrations..."
-            npx prisma migrate deploy || true
+            npx prisma migrate deploy || echo "⚠️ Migration skipped or already applied"
             
             echo "🏗️ Building application..."
             NODE_OPTIONS="--max-old-space-size=4096" npm run build
             
-            echo "🔄 Restarting application..."
-            pm2 restart aureonone || pm2 start npm --name "aureonone" -- start
+            echo "🔄 Restarting application with PM2..."
+            if pm2 describe aureonone > /dev/null 2>&1; then
+              pm2 restart aureonone
+            else
+              pm2 start npm --name "aureonone" -- start
+            fi
+            
+            pm2 save
             
             echo "✅ Deployment complete!"
             echo "📊 Application status:"
